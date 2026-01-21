@@ -32,10 +32,10 @@ import { FigmaExtractor, requireEnv } from "figma-skill";
 const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
 
-// Extract file key from URL: https://www.figma.com/design/{fileKey}/...
-const design = await figma.getFile("abc123", { format: "toon" });
-await Bun.write("output/design-name.toon", design);
-console.log(`Design saved to design-name.toon`);
+// Extract file key from URL: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard-NewFlow?node-id=8202-55990
+const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", { format: "toon" });
+await Bun.write("output/profile-dashboard.toon", design);
+console.log(`Design saved to profile-dashboard.toon`);
 ```
 
 ## Workflow Decision Tree
@@ -50,9 +50,9 @@ import { FigmaExtractor, requireEnv } from "figma-skill";
 const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
 
-// Extract file key from URL
-const design = await figma.getFile("abc123", { format: "toon" });
-await Bun.write("output/design-name.toon", design);
+// Extract file key from URL: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/...
+const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", { format: "toon" });
+await Bun.write("output/profile-dashboard.toon", design);
 ```
 
 ### With Asset Download
@@ -198,7 +198,7 @@ FIGMA_TOKEN=your_token_here
 
 Extract file key from Figma URL:
 - URL: `https://www.figma.com/design/{fileKey}/...`
-- Example: `https://www.figma.com/design/abc123xyz/Project` → key is `abc123xyz`
+- Example: `https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard-NewFlow?node-id=8202-55990` → key is `7kRmPqZ8fTnQJ9bH4LxC0a`
 
 ## Next Steps
 
