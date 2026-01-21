@@ -1,56 +1,58 @@
+// Main client
 export { FigmaExtractor } from "@/client/index";
 
-// Types - now consolidated in extractors/types.ts
+// Essential types for users
 export type {
   FigmaExtractorConfig,
   GetFileOptions,
   GetNodesOptions,
   GetImageUrlsOptions,
   DownloadImagesOptions,
-  SimplifiedNode,
-  SimplifiedComponentDefinition,
-  SimplifiedComponentSetDefinition,
-  GlobalVars,
   SimplifiedDesign,
-  ExtractorFn,
-  TraversalContext,
-  TraversalOptions,
   StreamProgress,
-  StreamChunk,
   ImageUrlResult,
   DownloadedImageResult,
-  NodeId,
-  NodeIdValidationResult,
-  OutputFormat,
-  ImageFormat,
-  ImageScale,
-  PaginationOptions,
-  PaginatedResponse,
 } from "@/extractors/types";
 
-// Re-export Figma API types
+// Re-export Figma API types users commonly need
 export type {
-  GetFileResponse,
-  GetFileNodesResponse,
-  GetImagesResponse,
   Node,
   Component,
   ComponentSet,
-  Style,
+  GetFileResponse,
+  GetImagesResponse,
 } from "@figma/rest-api-spec";
 
-// Re-export error types from utils (as values, since they are classes)
+// Extractors (for custom extraction)
 export {
-  FigmaApiError,
-  AuthenticationError,
-  RateLimitError,
-  NetworkError,
-  PayloadTooLargeError,
-} from "@/utils/fetch-with-retry";
+  extractFromDesign,
+  layoutExtractor,
+  textExtractor,
+  visualsExtractor,
+  componentExtractor,
+  allExtractors,
+  layoutAndText,
+  contentOnly,
+  visualsOnly,
+  layoutOnly,
+  collapseSvgContainers,
+  SVG_ELIGIBLE_TYPES,
+} from "@/extractors/index";
 
-// Utilities (minimal exports for advanced users)
+// Toon format (unique advantage - keep!)
+export { toToon, fromToon } from "@/transformers/toon";
+
+// Logger (minimal - users control their own logging)
 export { setLogLevel, getLogLevel } from "@/utils/logger";
 
-export { FigmaCache } from "@/utils/cache";
+// Error handling (base class only)
+export { FigmaApiError } from "@/utils/fetch-with-retry";
 
+// Advanced utilities (for power users)
+export { FigmaCache } from "@/utils/cache";
 export { RateLimiter } from "@/utils/rate-limiter";
+
+// NO individual transformer functions
+// NO internal utility functions
+// NO error subclass exports (users catch FigmaApiError)
+// NO dotenv-related exports
