@@ -347,12 +347,12 @@ export interface DownloadedImageResult {
 }
 
 // =====================================================
-// Style Types (for Phase 1+ implementation)
+// Style Types (Phase 1: Foundation)
 // =====================================================
 
 /**
  * Style types that can be referenced globally
- * This will be expanded in Phase 1 for style deduplication
+ * Updated in Phase 1 to include expanded fill types
  */
 export type StyleTypes =
   | import("../transformers/layout").SimplifiedLayout
@@ -363,8 +363,12 @@ export type StyleTypes =
 
 /**
  * Simplified fill types
- * NOTE: Full implementation with SimplifiedImageFill, SimplifiedGradientFill,
- * SimplifiedPatternFill will be added in Phase 4. For now, we use the existing
- * SimplifiedFill type from the style transformer.
+ * Re-exports from style transformer (updated in Phase 1)
  */
 export type SimplifiedFill = import("../transformers/style").SimplifiedFill;
+export type SimplifiedImageFill = import("../transformers/style").SimplifiedImageFill;
+export type SimplifiedGradientFill = import("../transformers/style").SimplifiedGradientFill;
+export type SimplifiedPatternFill = import("../transformers/style").SimplifiedPatternFill;
+export type ColorValue = import("../transformers/style").ColorValue;
+export type CSSRGBAColor = import("../transformers/style").CSSRGBAColor;
+export type CSSHexColor = import("../transformers/style").CSSHexColor;

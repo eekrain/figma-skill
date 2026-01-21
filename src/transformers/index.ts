@@ -14,6 +14,12 @@ export type {
   SimplifiedFill,
   SimplifiedStroke,
   SimplifiedStrokes,
+  SimplifiedImageFill,
+  SimplifiedGradientFill,
+  SimplifiedPatternFill,
+  ColorValue,
+  CSSRGBAColor,
+  CSSHexColor,
 } from "./style";
 
 export type { SimplifiedEffects } from "./effects";

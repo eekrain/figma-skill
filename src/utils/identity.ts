@@ -73,7 +73,13 @@ export function isStrokeWeights(value: unknown): value is {
 export function isInAutoLayoutFlow(node: Node, parent?: Node): boolean {
   if (!parent || !isFrame(parent)) return false;
   if (parent.layoutMode === "NONE") return false;
-  if (node.layoutPositioning === "ABSOLUTE") return false;
+  // Use hasValue to check if layoutPositioning exists and is "ABSOLUTE"
+  if (
+    "layoutPositioning" in node &&
+    node.layoutPositioning === "ABSOLUTE"
+  ) {
+    return false;
+  }
   return true;
 }
 
