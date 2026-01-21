@@ -8,8 +8,8 @@ import type {
   SimplifiedDesign,
   SimplifiedNode,
   TraversalOptions,
-} from "@/types/index";
-import type { StreamChunk } from "@/types/index";
+} from "@/extractors/types";
+import type { StreamChunk } from "@/extractors/types";
 
 import { extractFromDesign } from "@/extractors/node-walker";
 

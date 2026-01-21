@@ -7,13 +7,7 @@
  */
 import type { Node } from "@figma/rest-api-spec";
 
-import type {
-  ExtractorFn,
-  GlobalVars,
-  SimplifiedNode,
-  TraversalOptions,
-} from "@/types/index";
-import type { StreamChunk } from "@/types/index";
+import type { StreamChunk } from "@/extractors/types";
 
 import { extractFromDesign } from "@/extractors/node-walker";
 

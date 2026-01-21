@@ -4,21 +4,21 @@
 import type { Node } from "@figma/rest-api-spec";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
-import type { StreamChunk } from "@/types/index";
+import type { StreamChunk } from "@/extractors/types";
 
 import type { FileStreamResult } from "@/streaming/file-streamer";
 import { FigmaApiError, PayloadTooLargeError } from "@/utils/fetch-with-retry";
 
-import { fetchPaginatedFile, isSizeRelatedError } from "./paginated-fetcher";
-import { ProgressEmitter } from "./progress-emitter";
+import { fetchPaginatedFile, isSizeRelatedError } from "@/streaming/paginated-fetcher";
+import { ProgressEmitter } from "@/streaming/progress-emitter";
 
 describe("paginated-fetcher", () => {
   let mockProgress: ProgressEmitter;
-  let mockRequest: jest.Mock<Promise<unknown>, [string]>;
+  let mockRequest: jest.Mock;
 
   beforeEach(() => {
     mockProgress = new ProgressEmitter();
-    mockRequest = jest.fn();
+    mockRequest = jest.fn() as unknown as jest.Mock;
   });
 
   const createMockDocumentNode = (children: Node[]): Node => {
@@ -196,7 +196,8 @@ describe("paginated-fetcher", () => {
       });
 
       // Mock batch responses
-      mockRequest.mockImplementation((endpoint) => {
+      mockRequest.mockImplementation((endpoint: string) => {
+        // eslint-disable-next-line no-undef
         const idsParam = new URLSearchParams(endpoint.split("?")[1]).get("ids");
         const ids = idsParam!.split(",");
 

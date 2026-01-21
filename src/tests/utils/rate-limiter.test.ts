@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
-import { RateLimiter } from "./rate-limiter";
+import { RateLimiter } from "@/utils/rate-limiter";
 
 describe("RateLimiter", () => {
   let limiter: RateLimiter;

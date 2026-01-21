@@ -4,8 +4,8 @@
 import type { Node } from "@figma/rest-api-spec";
 import { describe, expect, it } from "@jest/globals";
 
-import { allExtractors } from "./extractors/built-in";
-import { extractFromDesign } from "./extractors/node-walker";
+import { allExtractors } from "@/extractors/built-in";
+import { extractFromDesign } from "@/extractors/node-walker";
 
 describe("Extraction Pipeline Integration", () => {
   it("should extract layout from a simple frame node", () => {

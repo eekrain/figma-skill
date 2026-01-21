@@ -4,7 +4,7 @@
  */
 import { EventEmitter } from "eventemitter3";
 
-import type { StreamProgress } from "@/types/index";
+import type { StreamProgress } from "@/extractors/types";
 
 /**
  * Progress events emitted during streaming operations

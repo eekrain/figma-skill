@@ -9,7 +9,7 @@ import type {
   SimplifiedNode,
   TraversalContext,
   TraversalOptions,
-} from "@/types";
+} from "@/extractors/types";
 import { hasValue, isVisible } from "@/utils/common";
 
 /**

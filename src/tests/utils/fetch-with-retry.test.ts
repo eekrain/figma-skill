@@ -9,7 +9,7 @@ import {
   NetworkError,
   RateLimitError,
   fetchWithRetry,
-} from "./fetch-with-retry";
+} from "@/utils/fetch-with-retry";
 
 // Mock fetch globally
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

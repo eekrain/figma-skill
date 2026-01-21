@@ -1,5 +1,8 @@
 /**
  * Transformers module - convert Figma data to simplified formats
+ *
+ * Types only - for type checking, not for direct use
+ * Functions are internal and used by extractors
  */
 
 // Re-export types from individual transformers
@@ -21,21 +24,8 @@ export type {
   SimplifiedComponentSetDefinition,
 } from "./component";
 
-// Re-export functions from individual transformers
-export { buildSimplifiedLayout } from "./layout";
-
-export {
-  isTextNode,
-  hasTextStyle,
-  extractNodeText,
-  extractTextStyle,
-} from "./text";
-
-export { parsePaint, buildSimplifiedStrokes, formatRGBAColor } from "./style";
-
-export { buildSimplifiedEffects } from "./effects";
-
-export { simplifyComponents, simplifyComponentSets } from "./component";
-
-// Toon format - token-efficient design representation
+// Keep only Toon format (public API feature)
 export { toToon, fromToon } from "./toon";
+
+// DO NOT export individual transformer functions
+// They are internal - users use extractors instead

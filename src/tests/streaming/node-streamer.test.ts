@@ -8,12 +8,12 @@ import type {
   SimplifiedNode,
   StreamChunk,
   StreamProgress,
-} from "@/types/index";
+} from "@/extractors/types";
 
 import { allExtractors } from "@/extractors";
 
-import { streamNodes } from "./node-streamer";
-import { ProgressEmitter } from "./progress-emitter";
+import { streamNodes } from "@/streaming/node-streamer";
+import { ProgressEmitter } from "@/streaming/progress-emitter";
 
 describe("streamNodes", () => {
   let mockProgress: ProgressEmitter;
@@ -390,7 +390,7 @@ describe("streamNodes", () => {
       expect(result.value).toBeDefined();
 
       const finalResult =
-        result.value as import("./node-streamer").NodeStreamResult;
+        result.value as import("@/streaming/node-streamer").NodeStreamResult;
       expect(finalResult.nodeCount).toBeDefined();
       expect(finalResult.nodeCount).toBeGreaterThanOrEqual(5);
     });

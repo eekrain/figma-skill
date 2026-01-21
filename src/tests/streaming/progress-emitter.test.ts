@@ -3,7 +3,7 @@
  */
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
-import { ProgressEmitter } from "./progress-emitter";
+import { ProgressEmitter } from "@/streaming/progress-emitter";
 
 describe("ProgressEmitter", () => {
   let emitter: ProgressEmitter;

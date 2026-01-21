@@ -1,9 +1,9 @@
 /**
  * Unit tests for FigmaCache
  */
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 
-import { FigmaCache } from "./cache";
+import { FigmaCache } from "@/utils/cache";
 
 describe("FigmaCache", () => {
   let cache: FigmaCache;

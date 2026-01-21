@@ -1,4 +1,5 @@
-import type { NodeId, NodeIdValidationResult } from "@/types/index";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { NodeId, NodeIdValidationResult } from "@/extractors/types";
 
 interface ValidateNodeIdOptions {
   allowMultiple?: boolean;
@@ -15,15 +16,15 @@ export function validateNodeId(
   options: ValidateNodeIdOptions = {}
 ): NodeIdValidationResult {
   const {
-    allowMultiple = true,
-    allowInstance = true,
-    allowUrlFormat = true,
+    allowMultiple: _allowMultiple = true,
+    allowInstance: _allowInstance = true,
+    allowUrlFormat: _allowUrlFormat = true,
   } = options;
 
   // Pattern explanation:
   // ^(?:I?\d+[:-]\d+) - First node: optional I prefix, digits, separator (: or -), digits
   // (?:;(?:I?\d+[:-]\d+))* - Zero or more additional nodes: semicolon, optional I, digits, separator, digits
-  const multiNodePattern = allowInstance
+  const multiNodePattern = _allowInstance
     ? /^(?:I?\d+[:-]\d+)(?:;(?:I?\d+[:-]\d+))*$/
     : /^(?:\d+[:-]\d+)(?:;(?:\d+[:-]\d+))*$/;
 
@@ -51,6 +52,7 @@ export function normalizeNodeId(nodeId: string): string {
  */
 export function extractNodeIdFromUrl(url: string): string | undefined {
   try {
+    // eslint-disable-next-line no-undef
     const urlObj = new URL(url);
     return urlObj.searchParams.get("node-id") || undefined;
   } catch {

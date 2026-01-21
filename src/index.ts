@@ -1,6 +1,6 @@
 export { FigmaExtractor } from "@/client/index";
 
-// Types
+// Types - now consolidated in extractors/types.ts
 export type {
   FigmaExtractorConfig,
   GetFileOptions,
@@ -14,11 +14,19 @@ export type {
   SimplifiedDesign,
   ExtractorFn,
   TraversalContext,
+  TraversalOptions,
   StreamProgress,
   StreamChunk,
   ImageUrlResult,
   DownloadedImageResult,
-} from "@/types/index";
+  NodeId,
+  NodeIdValidationResult,
+  OutputFormat,
+  ImageFormat,
+  ImageScale,
+  PaginationOptions,
+  PaginatedResponse,
+} from "@/extractors/types";
 
 // Re-export Figma API types
 export type {
@@ -31,33 +39,18 @@ export type {
   Style,
 } from "@figma/rest-api-spec";
 
-// Utilities (for advanced users)
-export {
-  setLogLevel,
-  getLogLevel,
-  debug,
-  info,
-  warn,
-  error,
-} from "@/utils/logger";
-
+// Re-export error types from utils (as values, since they are classes)
 export {
   FigmaApiError,
   AuthenticationError,
   RateLimitError,
   NetworkError,
+  PayloadTooLargeError,
 } from "@/utils/fetch-with-retry";
+
+// Utilities (minimal exports for advanced users)
+export { setLogLevel, getLogLevel } from "@/utils/logger";
 
 export { FigmaCache } from "@/utils/cache";
 
 export { RateLimiter } from "@/utils/rate-limiter";
-
-export { requireEnv } from "@/utils/dotenv";
-
-export type { EnvVars } from "@/utils/dotenv";
-
-export {
-  EnvParseError,
-  EnvFileNotFoundError,
-  EnvReadError,
-} from "@/utils/dotenv";

@@ -4,7 +4,7 @@
  * Toon format is a compact string representation that's 30-60% smaller
  * than JSON while maintaining all essential design information.
  */
-import type { SimplifiedDesign, SimplifiedNode } from "@/types";
+import type { SimplifiedDesign, SimplifiedNode } from "@/extractors/types";
 
 /**
  * Convert SimplifiedDesign to Toon format (compact string)
@@ -153,6 +153,7 @@ function deserializeNodes(data: string): SimplifiedNode[] {
 }
 
 function deserializeNode(data: string): SimplifiedNode {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const node: any = {
     id: "",
     name: "",

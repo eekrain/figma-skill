@@ -4,13 +4,13 @@
 import type { Node } from "@figma/rest-api-spec";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
-import type { StreamChunk } from "@/types/index";
+import type { StreamChunk } from "@/extractors/types";
 
 import { allExtractors } from "@/extractors/built-in";
 import type { ExtractorFn } from "@/extractors/types";
 
-import { type FileStreamResult, streamFile } from "./file-streamer";
-import { ProgressEmitter } from "./progress-emitter";
+import { type FileStreamResult, streamFile } from "@/streaming/file-streamer";
+import { ProgressEmitter } from "@/streaming/progress-emitter";
 
 describe("streamFile", () => {
   let mockProgress: ProgressEmitter;

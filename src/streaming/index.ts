@@ -25,4 +25,4 @@ export {
 } from "./node-streamer";
 
 // Re-export stream types from main types
-export type { StreamProgress, StreamChunk } from "@/types/index";
+export type { StreamProgress, StreamChunk } from "@/extractors/types";

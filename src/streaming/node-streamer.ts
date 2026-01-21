@@ -7,10 +7,10 @@ import type {
   ExtractorFn,
   SimplifiedNode,
   TraversalOptions,
-} from "@/types/index";
+} from "@/extractors/types";
 
 import { extractFromDesign } from "@/extractors/node-walker";
-import type { StreamChunk } from "@/types";
+import type { StreamChunk } from "@/extractors/types";
 
 import type { ProgressEmitter } from "./progress-emitter";
 

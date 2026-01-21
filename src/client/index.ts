@@ -2,8 +2,6 @@
  * FigmaExtractor - Main client class for figma-skill
  */
 import type {
-  Component,
-  ComponentSet,
   DownloadImagesOptions,
   DownloadedImageResult,
   FigmaExtractorConfig,
@@ -11,11 +9,16 @@ import type {
   GetImageUrlsOptions,
   GetNodesOptions,
   ImageUrlResult,
-  Node,
   SimplifiedDesign,
   SimplifiedNode,
   StreamChunk,
-} from "@/types/index";
+} from "@/extractors/types";
+
+import type {
+  Component,
+  ComponentSet,
+  Node,
+} from "@figma/rest-api-spec";
 
 import { allExtractors } from "@/extractors/built-in";
 import { extractFromDesign } from "@/extractors/node-walker";
@@ -359,7 +362,6 @@ export class FigmaExtractor {
     }
 
     const normalizedNodeId = validation.normalized!;
-    const ids = validation.ids!;
 
     info(`Fetching nodes: ${normalizedNodeId}`);
 

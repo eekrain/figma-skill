@@ -10,7 +10,7 @@ import {
   adjustCropToImageBounds,
   calculateCropFromTransform,
   calculateCropRegions,
-} from "./crop-calculator";
+} from "@/images/crop-calculator";
 
 describe("calculateCropFromTransform", () => {
   const createMockNode = (

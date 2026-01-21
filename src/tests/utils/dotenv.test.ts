@@ -8,7 +8,7 @@ import {
   loadEnv,
   loadEnvIntoProcess,
   parseEnv,
-} from "./dotenv";
+} from "@/utils/dotenv";
 
 /**
  * Unit tests for dotenv utility

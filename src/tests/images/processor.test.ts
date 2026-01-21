@@ -12,7 +12,7 @@ import {
   generateDimensionCSS,
   getImageMetadata,
   processImage,
-} from "./processor";
+} from "@/images/processor";
 
 describe("processImage", () => {
   const testDir = "/tmp/figma-skill-test";

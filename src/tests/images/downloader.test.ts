@@ -17,7 +17,7 @@ import {
   deduplicateDownloads,
   downloadImages,
   downloadSingle,
-} from "./downloader";
+} from "@/images/downloader";
 
 // Mock sharp before importing the module that uses it
 jest.mock("sharp", () => {

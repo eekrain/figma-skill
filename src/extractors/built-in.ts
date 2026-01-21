@@ -6,7 +6,7 @@
  */
 import type { Node } from "@figma/rest-api-spec";
 
-import type { SimplifiedNode } from "@/types/index";
+import type { SimplifiedNode } from "@/extractors/types";
 
 import { buildSimplifiedEffects } from "@/transformers/effects";
 import { buildSimplifiedLayout } from "@/transformers/layout";
