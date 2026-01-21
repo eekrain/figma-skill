@@ -55,11 +55,11 @@
     "claude",
     "cursor"
   ],
-  "author": "Framelink",
+  "author": "eekrain",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/framelink/figma-skill"
+    "url": "https://github.com/eekrain/figma-skill"
   },
   "engines": {
     "node": ">=18.0.0"
