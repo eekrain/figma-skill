@@ -1,0 +1,7 @@
+mcp-reference/
+node_modules
+dist/
+
+.env
+.claude/figma-outputs
+official-skills-examples

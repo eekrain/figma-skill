@@ -1,0 +1,90 @@
+{
+  "name": "figma-skill",
+  "version": "0.1.0",
+  "description": "Efficient, modular Figma design data extraction for AI agents and developers",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./extractors": {
+      "types": "./dist/extractors/index.d.ts",
+      "import": "./dist/extractors/index.js"
+    },
+    "./transformers": {
+      "types": "./dist/transformers/index.d.ts",
+      "import": "./dist/transformers/index.js"
+    },
+    "./streaming": {
+      "types": "./dist/streaming/index.d.ts",
+      "import": "./dist/streaming/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src",
+    "format": "prettier --write .",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "figma",
+    "design",
+    "extractor",
+    "api",
+    "typescript",
+    "ai-agent",
+    "llm",
+    "toon",
+    "token-efficient",
+    "claude",
+    "cursor"
+  ],
+  "author": "Framelink",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/framelink/figma-skill"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@figma/rest-api-spec": "^0.33.0",
+    "@toon-format/toon": "^1.0.0",
+    "eventemitter3": "^5.0.1",
+    "lru-cache": "^11.0.2",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.5.0",
+    "ts-jest": "^29.2.5",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.2",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "typescript": "^5.7.3"
+  }
+}

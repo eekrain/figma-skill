@@ -1,0 +1,15 @@
+{
+  "name": "yyyy-mm-dd-the-name-of-the-design",
+  "module": "script.ts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "figma-skill": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
