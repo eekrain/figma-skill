@@ -198,3 +198,40 @@ export function generateDimensionCSS(
   const varName = `--image-${nodeId}`;
   return `  ${varName}-width: ${width}px;\n  ${varName}-height: ${height}px;`;
 }
+
+/**
+ * Generate CSS variables for image dimensions
+ * Supports responsive background-size calculation for TILE mode
+ * Matches mcp-reference pattern
+ *
+ * @param originalWidth - Original image width
+ * @param originalHeight - Original image height
+ * @param fileName - File name for CSS variable suffix
+ * @returns Record of CSS variable names to values
+ */
+export function generateImageCSSVariables(
+  originalWidth: number,
+  originalHeight: number,
+  fileName: string
+): Record<string, string> {
+  return {
+    [`--original-width-${fileName}`]: `${originalWidth}px`,
+    [`--original-height-${fileName}`]: `${originalHeight}px`,
+    [`--aspect-ratio-${fileName}`]: `${(originalWidth / originalHeight).toFixed(4)}`,
+  };
+}
+
+/**
+ * Generate background-size with CSS variables for TILE mode
+ * Matches mcp-reference: translateScaleMode
+ *
+ * @param scalingFactor - Scaling factor for the tile
+ * @param fileName - File name for CSS variable reference
+ * @returns CSS calc() expression for background-size
+ */
+export function generateTileBackgroundSize(
+  scalingFactor: number,
+  fileName: string
+): string {
+  return `calc(var(--original-width-${fileName}) * ${scalingFactor}) calc(var(--original-height-${fileName}) * ${scalingFactor})`;
+}

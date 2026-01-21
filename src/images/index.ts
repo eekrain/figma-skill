@@ -24,6 +24,8 @@ export {
   cropImage,
   convertFormat,
   generateDimensionCSS,
+  generateImageCSSVariables,
+  generateTileBackgroundSize,
   type ProcessOptions,
   type ProcessedImage,
 } from "./processor";
