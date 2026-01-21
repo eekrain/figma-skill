@@ -10,6 +10,10 @@ import type { Node } from "@figma/rest-api-spec";
 
 /**
  * Simplified node output from extraction pipeline
+ *
+ * With style deduplication enabled, style properties can be either:
+ * - Direct values (SimplifiedLayout, SimplifiedTextStyle, etc.)
+ * - String references to global variables (style IDs)
  */
 export interface SimplifiedNode {
   /** Node ID */
@@ -20,26 +24,24 @@ export interface SimplifiedNode {
   type: string;
   /** Whether node is visible */
   visible?: boolean;
-  /** Layout information (if layout extractor enabled) */
-  layout?: import("../transformers/layout").SimplifiedLayout;
+  /** Layout information (if layout extractor enabled) - can be var reference */
+  layout?: import("../transformers/layout").SimplifiedLayout | string;
   /** Text content (if text extractor enabled) */
   text?: string;
-  /** Text style (if text extractor enabled) */
-  textStyle?: import("../transformers/text").SimplifiedTextStyle;
-  /** Fill colors (if visuals extractor enabled) */
-  fills?: Array<Record<string, unknown> | string>;
-  /** Stroke colors (if visuals extractor enabled) */
-  strokes?: Array<Record<string, unknown> | string>;
+  /** Text style (if text extractor enabled) - can be var reference */
+  textStyle?: import("../transformers/text").SimplifiedTextStyle | string;
+  /** Fill colors (if visuals extractor enabled) - can be var reference */
+  fills?: SimplifiedFill[] | string;
+  /** Stroke colors (if visuals extractor enabled) - can be var reference */
+  strokes?: SimplifiedFill[] | string;
   /** Stroke weight (if visuals extractor enabled) */
   strokeWeight?: string;
   /** Stroke dashes (if visuals extractor enabled) */
   strokeDashes?: number[];
   /** Individual stroke weights (if visuals extractor enabled) */
   strokeWeights?: string;
-  /** Effects (if visuals extractor enabled) */
-  boxShadow?: string;
-  filter?: string;
-  backdropFilter?: string;
+  /** Effects (if visuals extractor enabled) - can be var reference */
+  effects?: import("../transformers/effects").SimplifiedEffects | string;
   /** Opacity (if visuals extractor enabled) */
   opacity?: number;
   /** Border radius (if visuals extractor enabled) */
@@ -56,8 +58,8 @@ export interface SimplifiedNode {
  * Global variables (styles, etc.)
  */
 export interface GlobalVars {
-  /** Named styles referenced by nodes */
-  styles: Record<string, unknown>;
+  /** Named styles referenced by nodes - typed as StyleTypes for deduplication */
+  styles: Record<string, StyleTypes>;
   /** Extra styles from API response (meta information) */
   extraStyles?: Record<string, { name: string }>;
 }
@@ -358,7 +360,7 @@ export type StyleTypes =
   | import("../transformers/layout").SimplifiedLayout
   | import("../transformers/text").SimplifiedTextStyle
   | SimplifiedFill[]
-  | import("../transformers/style").SimplifiedStroke
+  | import("../transformers/style").SimplifiedStrokes
   | import("../transformers/effects").SimplifiedEffects;
 
 /**

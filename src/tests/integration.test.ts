@@ -27,13 +27,22 @@ describe("Extraction Pipeline Integration", () => {
       height: 100,
     } as unknown as Node;
 
-    const { nodes } = extractFromDesign([mockFrame], allExtractors);
+    const { nodes, globalVars } = extractFromDesign([mockFrame], allExtractors);
 
     expect(nodes).toHaveLength(1);
     expect(nodes[0].id).toBe("1:1");
     expect(nodes[0].name).toBe("Test Frame");
     expect(nodes[0].layout).toBeDefined();
-    expect(nodes[0].layout?.mode).toBe("row");
+
+    // Layout can be a string reference or direct value
+    if (typeof nodes[0].layout === "string") {
+      // If it's a string reference, check the globalVars
+      const layoutValue = globalVars.styles[nodes[0].layout];
+      expect(layoutValue).toBeDefined();
+      expect(layoutValue).toHaveProperty("mode", "row");
+    } else {
+      expect(nodes[0].layout?.mode).toBe("row");
+    }
   });
 
   it("should extract text from a text node", () => {

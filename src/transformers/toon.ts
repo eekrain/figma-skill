@@ -111,17 +111,29 @@ function serializeNode(node: SimplifiedNode): string {
   }
 
   // Visuals
-  if (node.fills && node.fills.length > 0) {
-    parts.push(`f=${serializeArray(node.fills)}`);
+  if (node.fills) {
+    if (typeof node.fills === "string") {
+      parts.push(`f=${escapeValue(node.fills)}`);
+    } else if (node.fills.length > 0) {
+      parts.push(`f=${serializeArray(node.fills)}`);
+    }
   }
   if (node.strokes) {
-    parts.push(`s=${serializeObject(node.strokes)}`);
+    if (typeof node.strokes === "string") {
+      parts.push(`s=${escapeValue(node.strokes)}`);
+    } else {
+      parts.push(`s=${serializeObject(node.strokes)}`);
+    }
   }
   if (node.strokeWeight) {
     parts.push(`sw=${node.strokeWeight}`);
   }
-  if (node.boxShadow) {
-    parts.push(`bs=${escapeValue(node.boxShadow)}`);
+  if (node.effects) {
+    if (typeof node.effects === "string") {
+      parts.push(`e=${escapeValue(node.effects)}`);
+    } else {
+      parts.push(`e=${serializeObject(node.effects)}`);
+    }
   }
   if (node.opacity !== undefined && node.opacity !== 1) {
     parts.push(`o=${node.opacity}`);
@@ -200,8 +212,8 @@ function deserializeNode(data: string): SimplifiedNode {
       case "sw":
         node.strokeWeight = value;
         break;
-      case "bs":
-        node.boxShadow = unescapeValue(value);
+      case "e":
+        node.effects = deserializeObject(value);
         break;
       case "o":
         node.opacity = parseFloat(value);
