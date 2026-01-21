@@ -1,151 +1,222 @@
-# figma-skill - Development ROADMAP
+# figma-skill Roadmap
 
-## Project Overview
+This roadmap outlines planned improvements and features for the figma-skill package. Items are organized by development phases and effort levels.
 
-Transform the `figma-developer-mcp` MCP server into a modular, publishable NPM package that enables efficient Figma design data extraction. Designed as a Claude Skill where AI agents create JavaScript scripts using this package to fetch Figma metadata efficiently.
+## Overview
 
-## Vision
+figma-skill is a TypeScript package for extracting and processing Figma designs, optimized for AI coding assistant workflows. The package provides token-efficient TOON format, streaming API for large files, and modular extraction pipelines.
 
-> **"Give AI agents efficient, modular access to Figma design data through a clean JavaScript API"**
+## Core Feature Enhancements 🚀
+
+_High impact, foundational improvements_
+
+### Advanced Extraction Capabilities (High Priority)
+
+- [ ] **Variable mode support** for Enterprise plans
+  - [ ] Add `getVariables(fileKey)` method using `/v1/variables` endpoint
+  - [ ] Extract variable collections and modes
+  - [ ] Resolve variable references in extracted nodes
+- [ ] **Style extraction** using `/v1/styles/:key` endpoint
+  - [ ] Export named styles (text, color, effect, grid)
+  - [ ] Link styles to nodes for easier identification
+  - [ ] Style-based grouping and filtering
+- [ ] **Component metadata enhancement**
+  - [ ] Extract variant properties and values
+  - [ ] Return component set definitions
+  - [ ] Instance-only mode (overridden values only)
+
+### Image & Asset Handling
+
+> **Detailed Plan**: [`plans/improve-asset-handling.md`](./plans/improve-asset-handling.md)
+
+- [ ] **Improved mask/crop handling** (Phase 1)
+  - [ ] Mask detection: `isMask` sibling stencil relationship detection
+  - [ ] SVG matte compositing with `dest-in` blend mode for VECTOR masks
+  - [ ] Luminance mask support using grayscale alpha extraction
+  - [ ] Coordinate space alignment for mask/target bounding boxes
+  - [ ] Effective render bounds calculation (whitespace elimination)
+  - [ ] Nested mask support (2+ levels)
+- [ ] **Smart format detection** (Phase 2)
+  - [ ] Entropy-based content analysis (photo vs graphic detection)
+  - [ ] Transparency gate using `sharp.stats().isOpaque`
+  - [ ] Palette size analysis for PNG-8 eligibility
+  - [ ] Format-specific optimization (JPEG chroma subsampling, WebP smartSubsample)
+  - [ ] Auto-conversion pipeline with recommendation engine
+- [ ] **Batch processing & concurrency** (Phase 3)
+  - [ ] p-limit controlled concurrency (match CPU count)
+  - [ ] Sharp cache management (disable for one-pass pipelines)
+  - [ ] Memory-aware batch processing (stable heap usage)
+  - [ ] Download-process integrated pipeline
+  - [ ] Stream-based processing for 1000+ image datasets
+- [ ] **Vector optimization** (Phase 4)
+  - [ ] SVG canonicalization (remove IDs, sort attributes, normalize)
+  - [ ] Content-addressable deduplication (SHA-256 hashing)
+  - [ ] SVGO integration with Figma-safe config (preserve viewBox)
+  - [ ] Sprite sheet generation with `<symbol>` syntax
+  - [ ] Icon set consolidation
+
+### Transformer Enhancements
+
+- [ ] **Layout detection**
+  - [ ] Auto-detect flex vs grid layouts
+  - [ ] Wrapped layout recognition
+  - [ ] Percentage-based width suggestions
+- [ ] **Style deduplication**
+  - [ ] Global style extraction from common patterns
+  - [ ] Design token generation
+  - [ ] CSS variable naming strategies
+- [ ] **Advanced gradient support**
+  - [ ] Complex gradient export (linear, radial, angular, diamond)
+  - [ ] Gradient position calculations
+  - [ ] Fallback for unsupported gradient types
+
+## Developer Experience 🛠️
+
+_Improving usability and integration_
+
+### Performance & Reliability
+
+- [x] **Retry logic** for API failures
+- [x] **Automatic pagination** for large files
+- [ ] **Progress events** for all long-running operations
+- [ ] **Cancellation tokens** for streaming operations
+- [ ] **Resource cleanup** on abort/error
+
+### Error Handling
+
+- [x] **Comprehensive error types** (`FigmaApiError` with message checking)
+- [ ] **Error recovery suggestions** in error messages
+- [ ] **Retry-after header** parsing for rate limits
+- [ ] **Detailed debug mode** with request/response logging
+
+## Documentation & Testing 📚
+
+- [ ] **Unit test coverage**
+  - [ ] Client methods (`getFile`, `getNodes`, `downloadImages`)
+  - [ ] All transformers (layout, text, style, effects, components)
+  - [ ] Extractor pipeline and custom extractors
+  - [ ] Error handling scenarios
+  - [ ] **Target: >80% coverage**
+- [ ] **Integration tests**
+  - [ ] Mock Figma API server
+  - [ ] End-to-end extraction workflows
+  - [ ] Streaming functionality tests
+  - [ ] Image processing tests
+- [ ] **API documentation**
+  - [ ] Complete JSDoc coverage for public APIs
+
+## Performance ⚡
+
+- [ ] **Benchmarking suite**
+  - [ ] Extraction speed benchmarks
+  - [ ] Memory usage profiling
+  - [ ] Cache efficiency tracking
+  - [ ] Comparison charts (with/without caching)
+- [ ] **Optimization targets**
+  - [ ] API Latency (p95): <500ms ✅
+  - [ ] Extraction Speed: 1000 nodes/100ms ✅
+  - [ ] Memory Usage: <10MB per 1000 nodes ✅
+  - [ ] TOON compression: 30-60% size reduction ✅
+- [ ] **Memory optimization**
+  - [ ] Streaming for all large data structures
+  - [ ] Weak references for cached data
+  - [ ] Chunked processing options
+
+## Enterprise Features 🏢
+
+_Features for scaling and enterprise adoption_
+
+### Authentication & Security
+
+- [ ] **Token management**
+  - [ ] Secure token loading from env files
+- [ ] **Team-specific access**
+  - [ ] Permission-aware error messages
+
+### Batch Operations
+
+- [ ] **Multi-file processing**
+  - [ ] Batch extraction from file lists
+  - [ ] Parallel file processing with rate limiting
+  - [ ] Aggregated progress reporting
+- [ ] **Design system extraction**
+  - [ ] Style guide generation
+  - [ ] Asset catalog creation
+
+## Quick Wins 🎪
+
+_Low effort, high impact_
+
+- [ ] **TypeScript strict mode** - Enable stricter type checking
+- [ ] **ESLint configuration** - Consistent code style
+- [ ] **Prettier integration** - Automated formatting
+
+## Technical Debt 🧹
+
+_Code quality and maintenance_
+
+- [ ] **Standardize error handling** across all services
+- [ ] **Type safety improvements** (reduce `any` usage)
+- [ ] **Deprecation warnings** for old API patterns
+- [ ] **Version documentation** (CHANGELOG.md)
+- [ ] **Dependency updates** (regular security audits)
+
+## Research & Exploration 🔬
+
+_Investigate feasibility / value_
+
+- [ ] **Alternative formats**
+  - [ ] Tailwind CSS conversion
+- [ ] **AI optimizations**
+  - [ ] LLM-specific data structures
+  - [ ] Token-efficient node representations
+  - [ ] Context-aware compression
+- [ ] **Design system integration**
+  - [ ] Token extraction and mapping
+  - [ ] Component dependency graphs
+
+## Version Plans
+
+### v0.2.0 - Variable & Style Support
+
+- Variable mode extraction (Enterprise)
+- Named style extraction
+- Enhanced component metadata
+
+### v0.3.0 - Enhanced Transformations
+
+> **Implementation Plan**: [`plans/improve-asset-handling.md`](./plans/improve-asset-handling.md)
+
+- Advanced layout detection
+- Smart format detection (entropy-based, transparency-aware)
+- Improved mask/crop handling (SVG matte compositing)
+- Vector optimization (deduplication, SVGO, sprites)
+- Batch processing with concurrency control
+
+### v0.4.0 - CLI Tool
+
+- Standalone CLI binary
+- Common command shortcuts
+- Configuration file support
+
+### v1.0.0 - Production Ready
+
+- 80%+ test coverage
+- Complete API documentation
+- Integration test suite
+- Performance benchmarks
+
+## Contributing
+
+We welcome contributions! Please check the issues labeled with "good first issue" or "help wanted". For major features, please open an issue first to discuss the implementation approach.
+
+### Priority Areas for Community Contributions
+
+1. **Test coverage** - Write unit tests for uncovered modules
+2. **Documentation** - Improve examples and API docs
+3. **Transformers** - Add new transformation utilities
+4. **Extractors** - Create specialized extractors for specific use cases
 
 ---
 
-## Dependencies
-
-### Runtime Dependencies
-
-| Package                | Version | Purpose                                            |
-| ---------------------- | ------- | -------------------------------------------------- |
-| `@figma/rest-api-spec` | ^0.33.0 | Figma API TypeScript types                         |
-| `@toon-format/toon`    | ^1.0.0  | Token-efficient LLM format (30-60% savings)        |
-| `eventemitter3`        | ^5.0.1  | Streaming progress events                          |
-| `lru-cache`            | ^11.0.2 | In-memory LRU cache for deduplication              |
-| `sharp`                | ^0.34.3 | Image processing (crop, resize, format conversion) |
-
----
-
-## Package Design
-
-### Name & Metadata
-
-```json
-{
-  "name": "figma-skill",
-  "version": "0.1.0",
-  "description": "Efficient, modular Figma design data extraction for AI agents and developers",
-  "type": "module",
-  "main": "./dist/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./client": "./dist/client/index.js",
-    "./extractors": "./dist/extractors/index.js",
-    "./transformers": "./dist/transformers/index.js",
-    "./streaming": "./dist/streaming/index.js",
-    "./images": "./dist/images/index.js"
-  }
-}
-```
-
----
-
-## Implementation Phases
-
-### Phase 1: Foundation (Week 1) ✅ COMPLETE
-
-- [x] Initialize npm package with proper configuration
-- [x] Create `FigmaExtractor` client class
-- [x] Implement authentication management
-- [x] Add `fetchWithRetry` with exponential backoff
-- [x] Set up in-memory LRU cache
-- [x] Add comprehensive logging
-
-### Phase 2: API Layer & Pagination (Week 2) ✅ COMPLETE
-
-- [x] Create API facade with typed methods
-- [x] Implement pagination for all endpoints
-- [x] Add request queue with rate limiting
-- [x] Implement request deduplication
-- [x] Add comprehensive error types
-
-### Phase 3: Extraction Pipeline (Week 3) ✅ COMPLETE
-
-- [x] Port `extractors/` module
-- [x] Port `transformers/` module
-- [x] Create simplified type exports
-- [x] Add custom extractor validation
-- [x] Optimize single-pass traversal
-
-### Phase 4: Streaming API (Week 4) ✅ COMPLETE
-
-- [x] Create `streaming/` module
-- [x] Implement `streamFile()` and `streamNodes()`
-- [x] Add async iterator support
-- [x] Create progress emitter
-- [x] Implement chunk-based processing
-
-### Phase 5: Image Processing (Week 5) ✅ COMPLETE
-
-- [x] Implement parallel image downloader
-- [x] Add Sharp-based image processing
-- [x] Implement crop calculation from transform matrices
-- [x] Support PNG and SVG formats
-- [x] Add CSS variable generation for dimensions
-- [x] Implement image deduplication caching
-
-### Phase 6: Testing & Documentation (Week 6)
-
-- [x] Integration test skeleton created
-- [ ] Unit tests for all modules
-- [ ] Integration tests with real Figma API
-- [ ] Performance benchmarks
-- [ ] JSDoc documentation
-- [x] Usage examples created
-- [ ] Claude Skill packaging
-
----
-
-## Latest Progress (Loop 3)
-
-**Completed:**
-
-- ✅ Phase 5: Image Processing fully implemented
-- ✅ `crop-calculator.ts`: Transform matrix to crop region conversion
-- ✅ `processor.ts`: Sharp-based image processing (crop, resize, format conversion)
-- ✅ `downloader.ts`: Parallel image download with deduplication
-- ✅ `manager.ts`: Coordinated download and processing operations
-- ✅ Updated `downloadImages()` in client to use new image module
-- ✅ Created comprehensive image-usage.ts examples
-
-**Image Module Features:**
-
-```typescript
-// Parallel download with deduplication
-const result = await downloadAndProcessImages(
-  imageUrls,
-  nodes,
-  "./output/images",
-  {
-    applyCrop: true, // Apply crop based on transforms
-    generateCSS: true, // Generate CSS variables
-    convertFormat: "webp", // Format conversion
-    quality: 85,
-  }
-);
-
-// Result includes:
-// - downloads: Download results with paths
-// - processed: Processed image metadata
-// - css: Generated CSS variables
-// - stats: Summary statistics
-```
-
-**Next Priority:**
-
-1. Write comprehensive unit tests (Phase 6)
-2. Package Claude Skill for distribution
-
-**Overall Progress:**
-
-- Phase 1-5: COMPLETE (83% of project)
-- Phase 6: Testing & Documentation (50%)
-- **Total: 25/28 items complete (89%)**
+_This roadmap is subject to change based on community feedback and priorities. Last updated: January 22, 2026_
