@@ -1,5 +1,6 @@
 /**
  * Effects transformer - convert Figma effects to CSS properties
+ * Matches mcp-reference/src/transformers/effects.ts
  */
 import type {
   BlurEffect,
@@ -9,93 +10,88 @@ import type {
   Node,
 } from "@figma/rest-api-spec";
 
-import { hasValue } from "@/utils/common";
+import { hasValue } from "@/utils/common.js";
 
-export type SimplifiedEffects = {
-  boxShadow?: string;
-  filter?: string;
-  backdropFilter?: string;
-  textShadow?: string;
+export interface SimplifiedEffects {
+  shadows?: Array<{
+    type: "drop-shadow" | "inner-shadow";
+    color: string;
+    offsetX: string;
+    offsetY: string;
+    blur: string;
+    spread?: string;
+  }>;
+  blur?: string;
+  layerBlur?: string;
+}
+
+type NodeWithEffects = Node & {
+  effects?: Effect[];
 };
 
 /**
  * Build simplified effects from a node
+ * Matches mcp-reference: buildSimplifiedEffects
  */
-export function buildSimplifiedEffects(n: Node): SimplifiedEffects {
-  if (!hasValue("effects", n)) {
-    return {};
+export function buildSimplifiedEffects(node: Node): SimplifiedEffects {
+  const effects: SimplifiedEffects = {};
+
+  const nodeWithEffects = node as NodeWithEffects;
+  if (
+    hasValue("effects", nodeWithEffects) &&
+    Array.isArray(nodeWithEffects.effects)
+  ) {
+    const shadows = nodeWithEffects.effects
+      .filter(
+        (e): e is DropShadowEffect | InnerShadowEffect =>
+          e.visible !== false &&
+          (e.type === "DROP_SHADOW" || e.type === "INNER_SHADOW")
+      )
+      .map((e) => ({
+        type:
+          e.type === "DROP_SHADOW"
+            ? ("drop-shadow" as const)
+            : ("inner-shadow" as const),
+        color: formatRGBAColor(e.color, e.color?.a ?? 1),
+        offsetX: `${e.offset?.x ?? 0}px`,
+        offsetY: `${e.offset?.y ?? 0}px`,
+        blur: `${e.radius ?? 0}px`,
+        spread:
+          e.spread !== undefined ? `${e.spread}px` : undefined,
+      }));
+
+    if (shadows.length) effects.shadows = shadows;
   }
 
-  const effects = (n.effects as Effect[]).filter((e) => e.visible !== false);
-
-  // Handle drop and inner shadows (both go into CSS box-shadow)
-  const dropShadows = effects
-    .filter((e): e is DropShadowEffect => e.type === "DROP_SHADOW")
-    .map(simplifyDropShadow);
-
-  const innerShadows = effects
-    .filter((e): e is InnerShadowEffect => e.type === "INNER_SHADOW")
-    .map(simplifyInnerShadow);
-
-  const boxShadow = [...dropShadows, ...innerShadows].join(", ");
-
-  // Handle blur effects - separate by CSS property
-  // Layer blurs use the CSS 'filter' property
-  const filterBlurValues = effects
-    .filter((e): e is BlurEffect => e.type === "LAYER_BLUR")
-    .map(simplifyBlur)
-    .join(" ");
-
-  // Background blurs use the CSS 'backdrop-filter' property
-  const backdropFilterValues = effects
-    .filter((e): e is BlurEffect => e.type === "BACKGROUND_BLUR")
-    .map(simplifyBlur)
-    .join(" ");
-
-  const result: SimplifiedEffects = {};
-
-  if (boxShadow) {
-    if (n.type === "TEXT") {
-      result.textShadow = boxShadow;
-    } else {
-      result.boxShadow = boxShadow;
-    }
+  // Layer blur
+  const layerBlurEffect = nodeWithEffects.effects?.find(
+    (e): e is BlurEffect =>
+      e.type === "LAYER_BLUR" && e.visible !== false
+  );
+  if (layerBlurEffect && layerBlurEffect.radius > 0) {
+    effects.layerBlur = `${layerBlurEffect.radius}px`;
   }
 
-  if (filterBlurValues) {
-    result.filter = filterBlurValues;
+  // Background blur (different CSS property)
+  const backgroundBlurEffect = nodeWithEffects.effects?.find(
+    (e): e is BlurEffect =>
+      e.type === "BACKGROUND_BLUR" && e.visible !== false
+  );
+  if (backgroundBlurEffect && backgroundBlurEffect.radius > 0) {
+    effects.blur = `${backgroundBlurEffect.radius}px`;
   }
 
-  if (backdropFilterValues) {
-    result.backdropFilter = backdropFilterValues;
-  }
-
-  return result;
-}
-
-function simplifyDropShadow(effect: DropShadowEffect): string {
-  const color = formatRGBAColor(effect.color);
-  return `${effect.offset.x}px ${effect.offset.y}px ${effect.radius}px ${effect.spread ?? 0}px ${color}`;
-}
-
-function simplifyInnerShadow(effect: InnerShadowEffect): string {
-  const color = formatRGBAColor(effect.color);
-  return `inset ${effect.offset.x}px ${effect.offset.y}px ${effect.radius}px ${effect.spread ?? 0}px ${color}`;
-}
-
-function simplifyBlur(effect: BlurEffect): string {
-  return `blur(${effect.radius}px)`;
+  return effects;
 }
 
 /**
- * Format RGBA color to CSS string
+ * Format Figma color to CSS rgba() format
+ * Matches mcp-reference: formatRGBAColor
  */
-function formatRGBAColor(color: {
-  r: number;
-  g: number;
-  b: number;
-  a: number;
-}): string {
-  const { r, g, b, a } = color;
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
+export function formatRGBAColor(
+  color: { r: number; g: number; b: number; a?: number },
+  opacity?: number
+): string {
+  const a = opacity ?? color.a ?? 1;
+  return `rgba(${color.r}, ${color.g}, ${color.b}, ${a})`;
 }

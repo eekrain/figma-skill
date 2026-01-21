@@ -1,12 +1,18 @@
 /**
  * Layout transformer - convert Figma layout properties to CSS flex-like format
+ * Matches mcp-reference/src/transformers/layout.ts
  */
 import type { Node } from "@figma/rest-api-spec";
 
-import { hasValue } from "@/utils/common";
+import { generateCSSShorthand, pixelRound } from "@/utils/common.js";
+import {
+  isFrame,
+  isInAutoLayoutFlow,
+  isLayout,
+} from "@/utils/identity.js";
 
-export type SimplifiedLayout = {
-  mode?: "none" | "row" | "column";
+export interface SimplifiedLayout {
+  mode: "none" | "row" | "column";
   justifyContent?:
     | "flex-start"
     | "flex-end"
@@ -37,241 +43,234 @@ export type SimplifiedLayout = {
   };
   overflowScroll?: ("x" | "y")[];
   position?: "absolute";
-};
+}
 
-export type FrameNode = Extract<Node, { layoutMode?: string }>;
+type NodeWithLayout = Node & {
+  layoutAlign?: string;
+  layoutPositioning?: string;
+  layoutSizingHorizontal?: string;
+  layoutSizingVertical?: string;
+  layoutGrow?: number;
+  preserveRatio?: boolean;
+  absoluteBoundingBox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+  primaryAxisAlignItems?: "MIN" | "MAX" | "CENTER" | "SPACE_BETWEEN" | "BASELINE";
+  counterAxisAlignItems?: "MIN" | "MAX" | "CENTER" | "SPACE_BETWEEN" | "BASELINE";
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  itemSpacing?: number;
+  layoutWrap?: "NO_WRAP" | "WRAP";
+  overflowDirection?: ("NONE" | "HORIZONTAL" | "VERTICAL" | "BOTH")[];
+};
 
 /**
  * Build simplified layout from a Figma node
+ * Matches mcp-reference: buildSimplifiedLayout
  */
 export function buildSimplifiedLayout(
   n: Node,
   parent?: Node
 ): SimplifiedLayout {
-  const frameValues = buildFrameValues(n);
-  const layoutValues = buildLayoutValues(n, parent, frameValues.mode ?? "none");
+  const frameValues = buildSimplifiedFrameValues(n);
+  const layoutValues =
+    buildSimplifiedLayoutValues(n, parent, frameValues.mode) || {};
 
   return { ...frameValues, ...layoutValues };
 }
 
 /**
- * Check if node is a frame with AutoLayout
- */
-function isFrame(n: Node): n is FrameNode {
-  return n.type === "FRAME" || n.type === "COMPONENT" || n.type === "INSTANCE";
-}
-
-/**
  * Build frame values (AutoLayout properties)
+ * Matches mcp-reference: buildSimplifiedFrameValues
  */
-function buildFrameValues(n: Node): SimplifiedLayout {
+function buildSimplifiedFrameValues(
+  n: Node
+): SimplifiedLayout | { mode: "none" } {
   if (!isFrame(n)) {
     return { mode: "none" };
   }
 
-  const frame = n as FrameNode;
-  const result: SimplifiedLayout = {};
+  const frameValues: SimplifiedLayout = {
+    mode:
+      !n.layoutMode || n.layoutMode === "NONE"
+        ? "none"
+        : n.layoutMode === "HORIZONTAL"
+          ? "row"
+          : "column",
+  };
 
-  // Convert layout mode
-  if (frame.layoutMode && frame.layoutMode !== "NONE") {
-    result.mode =
-      frame.layoutMode === "HORIZONTAL"
-        ? "row"
-        : frame.layoutMode === "VERTICAL"
-          ? "column"
-          : "none";
-  } else {
-    result.mode = "none";
+  const overflowScroll: SimplifiedLayout["overflowScroll"] = [];
+  if (n.overflowDirection?.includes("HORIZONTAL")) overflowScroll.push("x");
+  if (n.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
+  if (overflowScroll.length > 0) frameValues.overflowScroll = overflowScroll;
+
+  if (frameValues.mode === "none") {
+    return frameValues;
   }
 
-  if (result.mode === "none") {
-    return result;
-  }
+  const nodeWithLayout = n as NodeWithLayout;
 
-  // Convert alignment
-  if (frame.primaryAxisAlignItems) {
-    result.justifyContent = convertAlign(frame.primaryAxisAlignItems);
-  }
-
-  if (frame.counterAxisAlignItems) {
-    result.alignItems = convertAlign(frame.counterAxisAlignItems);
-  }
-
-  if (frame.layoutAlign) {
-    result.alignSelf = convertSelfAlign(frame.layoutAlign);
-  }
-
-  // Wrap
-  if (frame.layoutWrap === "WRAP") {
-    result.wrap = true;
-  }
-
-  // Gap
-  if (hasValue("itemSpacing", frame) && frame.itemSpacing !== 0) {
-    result.gap = `${frame.itemSpacing}px`;
-  }
-
-  // Padding
-  if (
-    hasValue("paddingTop", frame) ||
-    hasValue("paddingBottom", frame) ||
-    hasValue("paddingLeft", frame) ||
-    hasValue("paddingRight", frame)
-  ) {
-    const top = frame.paddingTop ?? 0;
-    const right = frame.paddingRight ?? 0;
-    const bottom = frame.paddingBottom ?? 0;
-    const left = frame.paddingLeft ?? 0;
-
-    if (top === right && right === bottom && bottom === left) {
-      result.padding = `${top}px`;
-    } else if (top === bottom && left === right) {
-      result.padding = `${top}px ${right}px`;
-    } else {
-      result.padding = `${top}px ${right}px ${bottom}px ${left}px`;
+  frameValues.justifyContent = convertAlign(
+    nodeWithLayout.primaryAxisAlignItems ?? "MIN",
+    {
+      children: n.children ?? [],
+      axis: "primary",
+      mode: frameValues.mode as "row" | "column",
     }
+  );
+  frameValues.alignItems = convertAlign(
+    nodeWithLayout.counterAxisAlignItems ?? "MIN",
+    {
+      children: n.children ?? [],
+      axis: "counter",
+      mode: frameValues.mode as "row" | "column",
+    }
+  );
+  frameValues.alignSelf = convertSelfAlign(nodeWithLayout.layoutAlign);
+
+  frameValues.wrap = n.layoutWrap === "WRAP" ? true : undefined;
+  frameValues.gap = n.itemSpacing ? `${n.itemSpacing ?? 0}px` : undefined;
+
+  if (
+    nodeWithLayout.paddingTop ||
+    nodeWithLayout.paddingBottom ||
+    nodeWithLayout.paddingLeft ||
+    nodeWithLayout.paddingRight
+  ) {
+    frameValues.padding = generateCSSShorthand({
+      top: nodeWithLayout.paddingTop ?? 0,
+      right: nodeWithLayout.paddingRight ?? 0,
+      bottom: nodeWithLayout.paddingBottom ?? 0,
+      left: nodeWithLayout.paddingLeft ?? 0,
+    });
   }
 
-  // Overflow scroll
-  const overflowScroll: ("x" | "y")[] = [];
-  if (frame.overflowDirection?.includes("HORIZONTAL")) {
-    overflowScroll.push("x");
-  }
-  if (frame.overflowDirection?.includes("VERTICAL")) {
-    overflowScroll.push("y");
-  }
-  if (overflowScroll.length > 0) {
-    result.overflowScroll = overflowScroll;
-  }
-
-  return result;
+  return frameValues;
 }
 
 /**
  * Build layout values (positioning, dimensions, sizing)
+ * Matches mcp-reference: buildSimplifiedLayoutValues
  */
-function buildLayoutValues(
+function buildSimplifiedLayoutValues(
   n: Node,
   parent: Node | undefined,
   mode: "row" | "column" | "none"
-): SimplifiedLayout {
-  const result: SimplifiedLayout = { mode };
+): SimplifiedLayout | undefined {
+  if (!isLayout(n)) return undefined;
 
-  // Only process if node has layout
-  if (!hasValue("absoluteBoundingBox", n)) {
-    return result;
-  }
+  const nodeWithLayout = n as NodeWithLayout;
+  const layoutValues: SimplifiedLayout = { mode };
 
-  const bbox = (
-    n as {
-      absoluteBoundingBox?: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-      } | null;
-    }
-  ).absoluteBoundingBox;
-  if (!bbox) {
-    return result;
-  }
-
-  // Sizing
-  result.sizing = {
-    horizontal: convertSizing(
-      (n as { layoutSizingHorizontal?: string }).layoutSizingHorizontal
-    ),
-    vertical: convertSizing(
-      (n as { layoutSizingVertical?: string }).layoutSizingVertical
-    ),
+  layoutValues.sizing = {
+    horizontal: convertSizing(nodeWithLayout.layoutSizingHorizontal),
+    vertical: convertSizing(nodeWithLayout.layoutSizingVertical),
   };
 
-  // Positioning (only if parent is not AutoLayout or node is absolute)
-  const parentIsFrame = parent ? isFrame(parent) : false;
-  const parentHasAutoLayout =
-    parentIsFrame &&
-    (parent as FrameNode).layoutMode &&
-    (parent as FrameNode).layoutMode !== "NONE";
-
-  const nodeProps = n as {
-    layoutPositioning?: string;
-    layoutGrow?: number;
-    layoutAlign?: string;
-    layoutSizingHorizontal?: string;
-    layoutSizingVertical?: string;
-    preserveRatio?: boolean;
-  };
-
-  if (!parentHasAutoLayout || nodeProps.layoutPositioning === "ABSOLUTE") {
-    if (nodeProps.layoutPositioning === "ABSOLUTE") {
-      result.position = "absolute";
+  if (parent && isFrame(parent) && !isInAutoLayoutFlow(n, parent)) {
+    if (nodeWithLayout.layoutPositioning === "ABSOLUTE") {
+      layoutValues.position = "absolute";
     }
-
-    const parentBbox = parent
-      ? (parent as { absoluteBoundingBox?: { x: number; y: number } | null })
-          .absoluteBoundingBox
-      : null;
-    if (parentBbox) {
-      result.locationRelativeToParent = {
-        x: Math.round(bbox.x - parentBbox.x),
-        y: Math.round(bbox.y - parentBbox.y),
+    if (
+      nodeWithLayout.absoluteBoundingBox &&
+      parent.absoluteBoundingBox
+    ) {
+      layoutValues.locationRelativeToParent = {
+        x: pixelRound(
+          nodeWithLayout.absoluteBoundingBox.x -
+            (parent.absoluteBoundingBox?.x ?? 0)
+        ),
+        y: pixelRound(
+          nodeWithLayout.absoluteBoundingBox.y -
+            (parent.absoluteBoundingBox?.y ?? 0)
+        ),
       };
     }
   }
 
-  // Dimensions (only include non-stretching dimensions)
-  const dimensions: { width?: number; height?: number; aspectRatio?: number } =
-    {};
+  if (nodeWithLayout.absoluteBoundingBox) {
+    const dimensions: {
+      width?: number;
+      height?: number;
+      aspectRatio?: number;
+    } = {};
 
-  if (mode === "row") {
-    if (!nodeProps.layoutGrow && nodeProps.layoutSizingHorizontal === "FIXED") {
-      dimensions.width = Math.round(bbox.width);
+    const bbox = nodeWithLayout.absoluteBoundingBox;
+
+    if (mode === "row") {
+      if (
+        !nodeWithLayout.layoutGrow &&
+        nodeWithLayout.layoutSizingHorizontal === "FIXED"
+      ) {
+        dimensions.width = bbox.width;
+      }
+      if (
+        nodeWithLayout.layoutAlign !== "STRETCH" &&
+        nodeWithLayout.layoutSizingVertical === "FIXED"
+      ) {
+        dimensions.height = bbox.height;
+      }
+    } else if (mode === "column") {
+      if (
+        nodeWithLayout.layoutAlign !== "STRETCH" &&
+        nodeWithLayout.layoutSizingHorizontal === "FIXED"
+      ) {
+        dimensions.width = bbox.width;
+      }
+      if (
+        !nodeWithLayout.layoutGrow &&
+        nodeWithLayout.layoutSizingVertical === "FIXED"
+      ) {
+        dimensions.height = bbox.height;
+      }
+      if (nodeWithLayout.preserveRatio && bbox.width && bbox.height) {
+        dimensions.aspectRatio = bbox.width / bbox.height;
+      }
+    } else {
+      if (
+        !nodeWithLayout.layoutSizingHorizontal ||
+        nodeWithLayout.layoutSizingHorizontal === "FIXED"
+      ) {
+        dimensions.width = bbox.width;
+      }
+      if (
+        !nodeWithLayout.layoutSizingVertical ||
+        nodeWithLayout.layoutSizingVertical === "FIXED"
+      ) {
+        dimensions.height = bbox.height;
+      }
     }
-    if (
-      nodeProps.layoutAlign !== "STRETCH" &&
-      nodeProps.layoutSizingVertical === "FIXED"
-    ) {
-      dimensions.height = Math.round(bbox.height);
-    }
-  } else if (mode === "column") {
-    if (
-      nodeProps.layoutAlign !== "STRETCH" &&
-      nodeProps.layoutSizingHorizontal === "FIXED"
-    ) {
-      dimensions.width = Math.round(bbox.width);
-    }
-    if (!nodeProps.layoutGrow && nodeProps.layoutSizingVertical === "FIXED") {
-      dimensions.height = Math.round(bbox.height);
-    }
-  } else {
-    if (
-      !nodeProps.layoutSizingHorizontal ||
-      nodeProps.layoutSizingHorizontal === "FIXED"
-    ) {
-      dimensions.width = Math.round(bbox.width);
-    }
-    if (
-      !nodeProps.layoutSizingVertical ||
-      nodeProps.layoutSizingVertical === "FIXED"
-    ) {
-      dimensions.height = Math.round(bbox.height);
+
+    if (Object.keys(dimensions).length > 0) {
+      if (dimensions.width !== undefined) {
+        dimensions.width = pixelRound(dimensions.width);
+      }
+      if (dimensions.height !== undefined) {
+        dimensions.height = pixelRound(dimensions.height);
+      }
+      layoutValues.dimensions = dimensions;
     }
   }
 
-  // Aspect ratio (if preserved)
-  if (nodeProps.preserveRatio && bbox.width && bbox.height) {
-    dimensions.aspectRatio = Math.round((bbox.width / bbox.height) * 100) / 100;
-  }
-
-  if (Object.keys(dimensions).length > 0) {
-    result.dimensions = dimensions;
-  }
-
-  return result;
+  return layoutValues;
 }
 
+/**
+ * Process alignment and sizing for flex layouts
+ * Matches mcp-reference: convertAlign
+ */
 function convertAlign(
-  align?: string
+  axisAlign?: "MIN" | "MAX" | "CENTER" | "SPACE_BETWEEN" | "BASELINE",
+  stretch?: {
+    children: Node[];
+    axis: "primary" | "counter";
+    mode: "row" | "column" | "none";
+  }
 ):
   | "flex-start"
   | "flex-end"
@@ -280,9 +279,32 @@ function convertAlign(
   | "baseline"
   | "stretch"
   | undefined {
-  switch (align) {
+  if (stretch && stretch.mode !== "none") {
+    const { children, mode, axis } = stretch;
+    const direction = getDirection(axis, mode);
+
+    const shouldStretch =
+      children.length > 0 &&
+      children.reduce((shouldStretch, c) => {
+        if (!shouldStretch) return false;
+        const childLayout = c as NodeWithLayout;
+        if (
+          childLayout.layoutPositioning === "ABSOLUTE"
+        )
+          return true;
+        if (direction === "horizontal") {
+          return childLayout.layoutSizingHorizontal === "FILL";
+        } else {
+          return childLayout.layoutSizingVertical === "FILL";
+        }
+      }, true);
+
+    if (shouldStretch) return "stretch";
+  }
+
+  switch (axisAlign) {
     case "MIN":
-      return undefined; // Default
+      return undefined;
     case "MAX":
       return "flex-end";
     case "CENTER":
@@ -296,12 +318,16 @@ function convertAlign(
   }
 }
 
+/**
+ * Matches mcp-reference: convertSelfAlign
+ */
 function convertSelfAlign(
   align?: string
 ): "flex-start" | "flex-end" | "center" | "stretch" | undefined {
   switch (align) {
     case "MIN":
-      return undefined; // Default
+    case "INHERIT":
+      return undefined;
     case "MAX":
       return "flex-end";
     case "CENTER":
@@ -313,9 +339,30 @@ function convertSelfAlign(
   }
 }
 
-function convertSizing(sizing?: string): "fixed" | "fill" | "hug" | undefined {
-  if (sizing === "FIXED") return "fixed";
-  if (sizing === "FILL") return "fill";
-  if (sizing === "HUG") return "hug";
+/**
+ * Interpret sizing
+ * Matches mcp-reference: convertSizing
+ */
+function convertSizing(
+  s?: string
+): "fixed" | "fill" | "hug" | undefined {
+  if (s === "FIXED") return "fixed";
+  if (s === "FILL") return "fill";
+  if (s === "HUG") return "hug";
   return undefined;
+}
+
+/**
+ * Get direction based on axis and mode
+ * Matches mcp-reference: getDirection
+ */
+function getDirection(
+  axis: "primary" | "counter",
+  mode: "row" | "column"
+): "horizontal" | "vertical" {
+  if (axis === "primary") {
+    return mode === "row" ? "horizontal" : "vertical";
+  } else {
+    return mode === "row" ? "horizontal" : "vertical";
+  }
 }
