@@ -14,9 +14,15 @@ This is a large design system, I need all nodes and assets."
 
 ## AI Agent Workflow
 
-1. **Extract file keys**: `abc123`, `def456`, `ghi789` from URLs
+1. **Extract file keys and node IDs**:
+   - `4BzNqT9dVpLxQmYaC7HkR2` with node ID `7203-38120`
+   - `9KpVgF4wJuSeTmRbQ1YdH6` with node ID `9125-45011`
+   - `2MzQhL8vXrPdYfCbN3GkT0` with node ID `6584-29387`
+
 2. **Create output directory**: `.claude/figma-outputs/2025-01-21-design-batch/`
+
 3. **Create package.json** and **tsconfig.json** (use templates)
+
 4. **Generate script.ts**:
 
 ```typescript
@@ -32,15 +38,24 @@ const figma = new FigmaExtractor({
 });
 
 // Define files to process
+// Use nodeId when URL contains ?node-id= parameter
 const files = [
-  { key: "abc123", name: "homepage-design" },
-  { key: "def456", name: "dashboard-system" },
-  { key: "ghi789", name: "component-library" },
+  {
+    key: "4BzNqT9dVpLxQmYaC7HkR2",
+    nodeId: "7203-38120",
+    name: "onboarding-flow",
+  },
+  { key: "9KpVgF4wJuSeTmRbQ1YdH6", nodeId: "9125-45011", name: "product-card" },
+  {
+    key: "2MzQhL8vXrPdYfCbN3GkT0",
+    nodeId: "6584-29387",
+    name: "settings-modal",
+  },
 ];
 
 const results = [];
 
-for (const { key, name } of files) {
+for (const { key, nodeId, name } of files) {
   console.log(`\n${"=".repeat(60)}`);
   console.log(`Processing: ${name}`);
   console.log(`${"=".repeat(60)}\n`);
@@ -48,8 +63,15 @@ for (const { key, name } of files) {
   try {
     // Extract design (automatic fallback for large files)
     console.log(`[1/3] Extracting design...`);
-    const design = await figma.getFile(key, { format: "json" });
-    const toonDesign = await figma.getFile(key, { format: "toon" });
+
+    const design = await figma.getFile(key, {
+      nodeId, // Extract specific node only
+      format: "json",
+    });
+    const toonDesign = await figma.getFile(key, {
+      nodeId, // Extract specific node only
+      format: "toon",
+    });
     await Bun.write(`${name}.toon`, toonDesign);
     console.log(`✓ Extracted ${design.nodes.length} nodes\n`);
 
@@ -130,98 +152,37 @@ console.log(
 ```
 
 5. **Run**: `bun install && bun --print script.ts && bun run script.ts`
+
 6. **Cleanup**: `rm script.ts package.json tsconfig.json && rm -rf node_modules`
 
-## Progress Output During Extraction
+## Batch Processing with Node IDs
 
-```
-============================================================
-Processing: homepage-design
-============================================================
+When URLs contain `node-id` parameters:
 
-[1/3] Extracting design...
-[DEBUG] Starting getFile for abc123...
-[DEBUG] API response received, starting extraction...
-[DEBUG] Extraction complete: 1250 nodes extracted
-✓ Extracted 1250 nodes
+```typescript
+// Define files with their node IDs
+const files = [
+  { key: "abc123", nodeId: "7203-38120", name: "onboarding" },
+  { key: "def456", nodeId: "9125-45011", name: "product-card" },
+  { key: "ghi789", nodeId: "6584-29387", name: "settings" },
+];
 
-[2/3] Finding image assets...
-✓ Found 45 image nodes
-
-[3/3] Downloading assets...
-[============================================================] 100% | 45/45
-✓ Downloaded 45 assets to homepage-design-assets/
-
-============================================================
-Processing: dashboard-system
-============================================================
-
-[1/3] Extracting design...
-[DEBUG] Starting getFile for def456...
-[DEBUG] API response received, starting extraction...
-[DEBUG] Extraction complete: 45000 nodes extracted
-✓ Extracted 45000 nodes
-
-[2/3] Finding image assets...
-✓ Found 320 image nodes
-
-[3/3] Downloading assets...
-[============================================================] 100% | 320/320
-✓ Downloaded 320 assets to dashboard-system-assets/
-
-============================================================
-Processing: component-library
-============================================================
-
-[1/3] Extracting design...
-[DEBUG] Starting getFile for ghi789...
-[INFO] File too large, using paginated approach
-[0.0%] Fetching top-level nodes... 15 nodes
-[5.2%] Fetched 100/1920 nodes
-[10.4%] Fetched 200/1920 nodes
-...
-[100.0%] Fetched 1920/1920 nodes
-✓ Extracted 1920 nodes
-
-[2/3] Finding image assets...
-✓ Found 85 image nodes
-
-[3/3] Downloading assets...
-[============================================================] 100% | 85/85
-✓ Downloaded 85 assets to component-library-assets/
-
-============================================================
-BATCH PROCESSING COMPLETE
-============================================================
-
-✓ homepage-design: 1250 nodes, 45 assets
-✓ dashboard-system: 45000 nodes, 320 assets
-✓ component-library: 1920 nodes, 85 assets
-
-Total: 3/3 files processed successfully
+// Extract each specific node
+for (const { key, nodeId, name } of files) {
+  const design = await figma.getFile(key, {
+    nodeId, // Extract only the specified node
+    format: "json",
+  });
+  // ... process design
+}
 ```
 
-## Final Output
+**Benefits of using nodeId in batch:**
 
-```
-.claude/figma-outputs/2025-01-21-design-batch/
-├── homepage-design.toon
-├── homepage-design-assets/
-│   ├── logo.svg
-│   ├── icon1.svg
-│   └── ...
-├── dashboard-system.toon
-├── dashboard-system-assets/
-│   ├── chart.svg
-│   ├── widget.svg
-│   └── ...
-├── component-library.toon
-├── component-library-assets/
-│   ├── button.svg
-│   ├── input.svg
-│   └── ...
-└── batch-summary.txt
-```
+- Faster extraction (only fetches needed nodes)
+- Reduced bandwidth
+- Targeted asset extraction
+- Ideal for design system component exports
 
 ## Automatic Fallback
 

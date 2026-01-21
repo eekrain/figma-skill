@@ -68,6 +68,29 @@ export interface FigmaExtractorConfig {
 }
 
 /**
+ * Node ID format validator
+ * Supports:
+ * - Standard format: "1:2" or "1-2"
+ * - Instance format: "I5666:180910" or "I5666-180910"
+ * - Multiple nodes: "1:2;3:4" or "1-2;3-4"
+ */
+export type NodeId = string;
+
+/**
+ * Result of nodeId validation
+ */
+export interface NodeIdValidationResult {
+  /** Whether the nodeId is valid */
+  valid: boolean;
+  /** Normalized nodeId (with : separators) */
+  normalized?: string;
+  /** Array of individual node IDs */
+  ids?: string[];
+  /** Error message if invalid */
+  error?: string;
+}
+
+/**
  * Options for getFile operation
  */
 export interface GetFileOptions extends TraversalOptions {
@@ -79,6 +102,8 @@ export interface GetFileOptions extends TraversalOptions {
   includeComponents?: boolean;
   /** Include component sets in output (default: true) */
   includeComponentSets?: boolean;
+  /** Specific node ID to extract (from URL node-id parameter) */
+  nodeId?: NodeId;
 }
 
 /**

@@ -16,7 +16,7 @@ You don't need to specify which approach. If the Figma API returns a size error 
 
 ## Streaming for Very Large Files
 
-For files requiring explicit progress tracking and memory efficiency, use `streamFile()`.
+For files requiring explicit progress tracking and memory efficiency, use `streamFile()` or `streamNodes()`.
 
 ### When to Use Streaming
 
@@ -25,7 +25,42 @@ For files requiring explicit progress tracking and memory efficiency, use `strea
 - Memory-constrained environments
 - Real-time progress updates required
 
-### Basic Streaming
+### Streaming Specific Nodes
+
+When you need to stream specific nodes (from URL `node-id` parameter):
+
+```typescript
+import { FigmaExtractor, requireEnv } from "figma-skill";
+
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
+const figma = new FigmaExtractor({ token });
+
+// Stream specific nodes by nodeId
+const stream = await figma.streamNodes("abc123", ["1:2", "3:4"], {
+  chunkSize: 50,
+});
+
+stream.progress.on("progress", (progress) => {
+  console.log(
+    `[${progress.percent.toFixed(1)}%] ${progress.processed}/${progress.total} nodes`
+  );
+});
+
+const allNodes = [];
+for await (const chunk of stream) {
+  allNodes.push(...chunk.nodes);
+}
+
+console.log(`Total nodes: ${allNodes.length}`);
+```
+
+**When to use `streamNodes()` instead of `getFile()` with nodeId:**
+
+- Multiple node IDs to stream
+- Need progress tracking for node extraction
+- Very large node structures requiring chunked processing
+
+### Basic Streaming (Entire File)
 
 ```typescript
 import { FigmaExtractor, requireEnv, toToon } from "figma-skill";
@@ -63,13 +98,14 @@ await Bun.write("output/my-design.toon", toToon(design));
 
 ```typescript
 const stream = await figma.streamFile(fileKey, {
-  chunkSize: 100,        // Nodes per chunk (default: 100)
+  chunkSize: 100, // Nodes per chunk (default: 100)
   extractors: allExtractors,
   includeComponents: true,
 });
 ```
 
 **Options:**
+
 - `chunkSize` (number) - Nodes to fetch per chunk
   - Smaller values: More frequent updates, more API calls
   - Larger values: Fewer API calls, less frequent updates
@@ -139,11 +175,12 @@ Adjust concurrent requests based on rate limits:
 ```typescript
 const figma = new FigmaExtractor({
   token,
-  concurrent: 5,  // Lower for rate-limited accounts
+  concurrent: 5, // Lower for rate-limited accounts
 });
 ```
 
 **Guidelines:**
+
 - Default: 10 concurrent requests
 - Rate-limited: 3-5 concurrent
 - High quota: 15-20 concurrent
@@ -155,12 +192,13 @@ Enable caching for repeated access:
 ```typescript
 const figma = new FigmaExtractor({
   token,
-  cache: true,      // Enable caching
-  cacheSize: 200,   // Increase cache size for large projects
+  cache: true, // Enable caching
+  cacheSize: 200, // Increase cache size for large projects
 });
 ```
 
 **Cache stats:**
+
 ```typescript
 const stats = figma.getCacheStats();
 if (stats.size >= stats.maxSize) {
@@ -175,8 +213,8 @@ Adjust timeout for slow networks:
 ```typescript
 const figma = new FigmaExtractor({
   token,
-  timeout: 60000,  // 60 seconds for slow networks
-  maxRetries: 5,   // More retries for unstable connections
+  timeout: 60000, // 60 seconds for slow networks
+  maxRetries: 5, // More retries for unstable connections
 });
 ```
 
@@ -185,6 +223,7 @@ const figma = new FigmaExtractor({
 ### Understanding Rate Limits
 
 Figma API rate limits:
+
 - **Personal tier**: 120 requests/minute
 - **Professional**: 360 requests/minute
 - **Organization**: Higher limits
@@ -263,6 +302,7 @@ figma.setLogLevel("debug");
 ```
 
 **Debug output includes:**
+
 - API request details
 - Pagination triggers
 - Node processing stats

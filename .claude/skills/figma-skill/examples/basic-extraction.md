@@ -9,9 +9,14 @@ Extract a single Figma design to TOON format.
 
 ## AI Agent Workflow
 
-1. **Extract file key**: `abc123` from URL
+1. **Extract file key and node ID**: From URL `https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/...?node-id=8202-55990`
+   - File key: `7kRmPqZ8fTnQJ9bH4LxC0a`
+   - Node ID: `8202-55990` (use directly in `getFile()` options)
+
 2. **Create output directory**: `.claude/figma-outputs/2025-01-21-my-design/`
+
 3. **Create package.json**:
+
    ```json
    {
      "name": "2025-01-21-my-design",
@@ -23,7 +28,9 @@ Extract a single Figma design to TOON format.
      "peerDependencies": { "typescript": "^5" }
    }
    ```
+
 4. **Create tsconfig.json** (use template)
+
 5. **Generate script.ts**:
 
    ```typescript
@@ -33,7 +40,15 @@ Extract a single Figma design to TOON format.
    const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 
    const figma = new FigmaExtractor({ token, cache: true });
-   const design = await figma.getFile("abc123", { format: "toon" });
+
+   // Option 1: Extract entire file (when node-id is not needed)
+   // const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", { format: "toon" });
+
+   // Option 2: Extract specific node only (when URL has node-id parameter)
+   const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", {
+     nodeId: "8202-55990", // Auto-converts - to :
+     format: "toon",
+   });
 
    // design is a string when format is "toon"
    await Bun.write("my-design.toon", design);
@@ -41,6 +56,7 @@ Extract a single Figma design to TOON format.
    ```
 
 6. **Run**: `bun install && bun --print script.ts && bun run script.ts`
+
 7. **Cleanup**: `rm script.ts package.json tsconfig.json && rm -rf node_modules`
 
 ## How It Works
@@ -55,6 +71,19 @@ You don't need to specify which approach to use - it's handled automatically. Th
 1. First try the standard single-request approach (fast)
 2. If the API returns a size error (413, 500, etc.), automatically fall back to paginated fetching
 3. Track progress for both approaches with the same interface
+
+### Node ID Extraction
+
+When the URL contains a `node-id` parameter, you can extract just that specific node:
+
+- **Without nodeId**: Fetches entire file
+- **With nodeId**: Fetches only the specified node(s)
+
+**Node ID formats supported:**
+
+- Standard: `"1:2"` or `"1-2"` (URL format)
+- Instance: `"I5666:180910"` or `"I5666-180910"`
+- Multiple: `"1:2;3:4"` or `"1-2;3-4"`
 
 ### For Very Large Files (Optional Streaming)
 

@@ -44,6 +44,7 @@ import {
   fetchWithRetry,
 } from "@/utils/fetch-with-retry";
 import { debug, info, setLogLevel } from "@/utils/logger";
+import { validateNodeId } from "@/utils/node-id";
 import { RateLimiter } from "@/utils/rate-limiter";
 
 export class FigmaExtractor {
@@ -184,17 +185,25 @@ export class FigmaExtractor {
   }
 
   /**
-   * Fetch a complete Figma file
+   * Fetch a complete Figma file or specific node
+   *
+   * When nodeId is provided, fetches only that specific node.
+   * When nodeId is omitted, fetches the entire file.
    */
   async getFile(
     fileKey: string,
     options?: GetFileOptions
   ): Promise<SimplifiedDesign | string> {
-    info(`Fetching file: ${fileKey}`);
+    info(`Fetching file: ${fileKey}`, { nodeId: options?.nodeId });
     console.log(`[DEBUG] Starting getFile for ${fileKey}...`);
 
+    // Route based on nodeId presence
+    if (options?.nodeId) {
+      return await this.getFileByNode(fileKey, options);
+    }
+
+    // Original behavior - fetch entire file
     try {
-      // Try standard approach first
       return await this.getFileStandard(fileKey, options);
     } catch (error) {
       // Check if it's a size-related error
@@ -323,6 +332,67 @@ export class FigmaExtractor {
     };
 
     // Handle format option
+    if (options?.format === "toon") {
+      return toToon(design) as unknown as SimplifiedDesign;
+    }
+
+    return design;
+  }
+
+  /**
+   * Fetch specific nodes from a Figma file by nodeId
+   * (Internal method used by getFile when nodeId is provided)
+   */
+  private async getFileByNode(
+    fileKey: string,
+    options: GetFileOptions
+  ): Promise<SimplifiedDesign | string> {
+    // Validate and normalize nodeId
+    const validation = validateNodeId(options.nodeId!, {
+      allowMultiple: true,
+      allowInstance: true,
+      allowUrlFormat: true,
+    });
+
+    if (!validation.valid) {
+      throw new Error(validation.error || "Invalid node ID format");
+    }
+
+    const normalizedNodeId = validation.normalized!;
+    const ids = validation.ids!;
+
+    info(`Fetching nodes: ${normalizedNodeId}`);
+
+    // Use existing getNodes infrastructure
+    const response = await this.rateLimiter.execute(() =>
+      this.request<{
+        name: string;
+        nodes: Record<string, Node>;
+      }>(`/files/${fileKey}/nodes?ids=${normalizedNodeId}`, {
+        cacheKey: ["nodes", fileKey, normalizedNodeId],
+      })
+    );
+
+    const extractors = options.extractors || allExtractors;
+    const { nodes, globalVars } = extractFromDesign(
+      Object.values(response.nodes),
+      extractors,
+      {
+        maxDepth: options.maxDepth,
+        nodeFilter: options.nodeFilter,
+        afterChildren: options.afterChildren,
+      },
+      { styles: {} }
+    );
+
+    const design: SimplifiedDesign = {
+      name: response.name,
+      nodes,
+      components: {}, // Node-specific fetch doesn't include components
+      componentSets: {},
+      globalVars,
+    };
+
     if (options?.format === "toon") {
       return toToon(design) as unknown as SimplifiedDesign;
     }

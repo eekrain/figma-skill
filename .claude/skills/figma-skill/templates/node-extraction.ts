@@ -1,0 +1,45 @@
+/**
+ * Template: Extract Specific Nodes by nodeId
+ *
+ * Extracts specific nodes from a Figma file using nodeId parameter.
+ * Use this when user provides Figma URL with node-id query parameter.
+ *
+ * URL Example: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/...?node-id=6001-47121
+ *
+ * SETUP:
+ * 1. Replace FILE_KEY with actual Figma file key
+ * 2. Replace NODE_ID with node ID from URL (can use - or : separator)
+ * 3. Replace output-name with meaningful output name
+ * 4. Run: bun install && bun --print script.ts && bun run script.ts
+ * 5. Cleanup: rm script.ts package.json tsconfig.json && rm -rf node_modules
+ *
+ * NODE ID FORMATS SUPPORTED:
+ * - Standard: "1:2" or "1-2" (URL format with -)
+ * - Instance: "I5666:180910" or "I5666-180910"
+ * - Multiple: "1:2;3:4" or "1-2;3-4"
+ */
+import { FigmaExtractor, requireEnv } from "figma-skill";
+
+// Load token and throw if missing (stops script immediately)
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
+
+const figma = new FigmaExtractor({
+  token,
+  cache: true,
+  concurrent: 10,
+});
+
+// CRITICAL: Extract from URL: https://www.figma.com/design/{FILE_KEY}/...?node-id={NODE_ID}
+const FILE_KEY = "your-file-key-here";
+const NODE_ID = "6001-47121"; // Can use URL format (-) or API format (:)
+
+// Extract specific node(s) - nodeId parameter auto-converts - to :
+const design = await figma.getFile(FILE_KEY, {
+  nodeId: NODE_ID,
+  format: "json",
+});
+
+// Save to output directory
+await Bun.write("output/node-extraction.json", JSON.stringify(design, null, 2));
+console.log(`Node extraction saved to output/node-extraction.json`);
+console.log(`Extracted ${design.nodes.length} node(s)`);

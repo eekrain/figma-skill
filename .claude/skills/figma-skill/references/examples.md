@@ -8,6 +8,7 @@ Detailed examples and common tasks for Figma design extraction and processing.
 
 - [Workflow Examples](#workflow-examples)
   - [Single Design Extraction](#single-design-extraction)
+  - [Extract Specific Node](#extract-specific-node)
   - [Asset Download](#asset-download)
   - [Batch Processing](#batch-processing)
 - [Common Tasks](#common-tasks)
@@ -37,6 +38,47 @@ const fileKey = "abc123xyz";
 const design = await figma.getFile(fileKey, { format: "toon" });
 await Bun.write("output/my-design.toon", design);
 console.log("Design saved to output/my-design.toon");
+```
+
+### Extract Specific Node
+
+Extract a specific node from a Figma file using the node-id from URL.
+
+```typescript
+import { FigmaExtractor, requireEnv } from "figma-skill";
+
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
+const figma = new FigmaExtractor({ token, cache: true });
+
+// URL: https://www.figma.com/design/abc123xyz/My-Design?node-id=6001-47121
+const fileKey = "abc123xyz";
+const nodeId = "6001-47121"; // From URL ?node-id= parameter
+
+const design = await figma.getFile(fileKey, {
+  nodeId, // Auto-converts - to :
+  format: "json",
+});
+
+await Bun.write("output/specific-node.json", JSON.stringify(design, null, 2));
+console.log(`Extracted ${design.nodes.length} nodes from specific node`);
+```
+
+**Multiple node IDs:**
+
+```typescript
+const design = await figma.getFile(fileKey, {
+  nodeId: "6001-47121;6001-47122", // Multiple nodes
+  format: "json",
+});
+```
+
+**Instance nodes:**
+
+```typescript
+const design = await figma.getFile(fileKey, {
+  nodeId: "I5666-180910", // Instance node
+  format: "json",
+});
 ```
 
 ### Asset Download
@@ -150,7 +192,7 @@ for (const r of results) {
 Extract all text content for documentation or translation.
 
 ```typescript
-import { FigmaExtractor, requireEnv, contentOnly } from "figma-skill";
+import { FigmaExtractor, contentOnly, requireEnv } from "figma-skill";
 
 const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
@@ -186,7 +228,7 @@ console.log(`Extracted ${textContent.length} text nodes`);
 Extract colors from design and generate CSS variables.
 
 ```typescript
-import { FigmaExtractor, requireEnv, allExtractors } from "figma-skill";
+import { FigmaExtractor, allExtractors, requireEnv } from "figma-skill";
 
 const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
@@ -339,7 +381,11 @@ const componentSetsList = Object.entries(design.componentSets).map(
 
 await Bun.write(
   "output/components.json",
-  JSON.stringify({ components: componentsList, sets: componentSetsList }, null, 2)
+  JSON.stringify(
+    { components: componentsList, sets: componentSetsList },
+    null,
+    2
+  )
 );
 
 console.log(`Extracted ${componentsList.length} components`);
@@ -353,8 +399,8 @@ console.log(`Extracted ${componentSetsList.length} component sets`);
 ```typescript
 import {
   AuthenticationError,
-  RateLimitError,
   FigmaApiError,
+  RateLimitError,
 } from "figma-skill";
 
 const token = await requireEnv("../../.env", "FIGMA_TOKEN");

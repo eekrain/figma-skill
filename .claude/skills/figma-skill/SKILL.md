@@ -11,6 +11,7 @@ license: Complete terms in LICENSE.txt
 Extract and process Figma design data using the `figma-skill` npm package. Handles files of any size automatically—small files use fast single-request path, large files (>10K nodes) automatically fall back to paginated fetching.
 
 **Output structure:** `.claude/figma-outputs/YYYY-MM-DD-name/`
+
 - `*.toon` - Compact design format (30-60% smaller than JSON)
 - `*-assets/` - Downloaded assets (when applicable)
 
@@ -33,10 +34,35 @@ const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
 
 // Extract file key from URL: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard-NewFlow?node-id=8202-55990
-const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", { format: "toon" });
+const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", {
+  format: "toon",
+});
 await Bun.write("output/profile-dashboard.toon", design);
 console.log(`Design saved to profile-dashboard.toon`);
 ```
+
+### Extracting Specific Nodes
+
+**When to use:** User provides Figma URL with `node-id` parameter.
+
+```typescript
+import { FigmaExtractor, requireEnv } from "figma-skill";
+
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
+const figma = new FigmaExtractor({ token, cache: true });
+
+// URL: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/...?node-id=6001-47121
+const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", {
+  nodeId: "6001-47121", // Auto-converts - to :
+  format: "json",
+});
+```
+
+**Node ID formats supported:**
+
+- Standard: `"1:2"` or `"1-2"` (URL format)
+- Instance: `"I5666:180910"` or `"I5666-180910"`
+- Multiple: `"1:2;3:4"` or `"1-2;3-4"`
 
 ## Workflow Decision Tree
 
@@ -51,7 +77,9 @@ const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
 
 // Extract file key from URL: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/...
-const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", { format: "toon" });
+const design = await figma.getFile("7kRmPqZ8fTnQJ9bH4LxC0a", {
+  format: "toon",
+});
 await Bun.write("output/profile-dashboard.toon", design);
 ```
 
@@ -117,16 +145,20 @@ for (const { key, name } of files) {
 This skill includes templates and examples for common workflows:
 
 **Templates:**
+
 - `templates/single-design.ts` - Extract a single Figma design
+- `templates/node-extraction.ts` - Extract specific nodes by nodeId
 - `templates/asset-download.ts` - Extract design + download assets
 - `templates/batch-processing.ts` - Process multiple files
 
 **Examples:**
+
 - `examples/basic-extraction.md` - Basic extraction workflows
 - `examples/asset-download.md` - Asset download patterns
 - `examples/batch-processing.md` - Batch processing examples
 
 **References:**
+
 - `references/api.md` - Complete API documentation
 - `references/advanced.md` - Streaming for very large files (10K+ nodes)
 - `references/examples.md` - Detailed examples and common tasks
@@ -134,22 +166,30 @@ This skill includes templates and examples for common workflows:
 ## Best Practices
 
 **File Size Handling:**
+
 - The extractor automatically handles files of any size
 - No manual configuration needed for large files
 - Automatic fallback to paginated fetching when needed
 
 **TOON vs JSON:**
+
 - Use TOON format for storage (30-60% smaller)
 - Use JSON format when you need to access node properties
 
 **Asset Download:**
+
 - Filter nodes by type before downloading
 - Use `parallel` option to control concurrency
 - SVG format preferred for icons/vectors
 
 **Error Handling:**
+
 ```typescript
-import { AuthenticationError, RateLimitError, FigmaApiError } from "figma-skill";
+import {
+  AuthenticationError,
+  FigmaApiError,
+  RateLimitError,
+} from "figma-skill";
 
 try {
   const design = await figma.getFile(fileKey);
@@ -165,11 +205,13 @@ try {
 ## Code Style Guidelines
 
 **Keep scripts concise:**
+
 - Use `requireEnv()` for token loading (throws if missing)
 - Use template strings for output paths
 - Clean up temporary files after completion
 
 **Progressive enhancement:**
+
 - Start with basic extraction
 - Add asset download only if needed
 - Use streaming only for very large files (10K+ nodes with explicit progress needs)
@@ -177,16 +219,19 @@ try {
 ## Dependencies
 
 **Runtime:** Bun (for ESM support and performance)
+
 ```bash
 curl -fsSL https://bun.sh/install | bash
 ```
 
 **Token Configuration:** Store in `.claude/.env`
+
 ```bash
 FIGMA_TOKEN=your_token_here
 ```
 
 **Package Installation:** Included in templates
+
 ```json
 {
   "dependencies": { "figma-skill": "0.1.0" },
@@ -194,11 +239,14 @@ FIGMA_TOKEN=your_token_here
 }
 ```
 
-## Getting File Keys
+## Getting File Keys and Node IDs
 
-Extract file key from Figma URL:
-- URL: `https://www.figma.com/design/{fileKey}/...`
-- Example: `https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard-NewFlow?node-id=8202-55990` → key is `7kRmPqZ8fTnQJ9bH4LxC0a`
+Extract from Figma URL: `https://www.figma.com/design/{fileKey}/...?node-id={nodeId}`
+
+Example: `https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard?node-id=6001-47121`
+
+- File key: `7kRmPqZ8fTnQJ9bH4LxC0a`
+- Node ID: `6001-47121` (use directly in `getFile()` options)
 
 ## Next Steps
 

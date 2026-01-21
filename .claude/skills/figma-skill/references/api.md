@@ -13,15 +13,16 @@ import { FigmaExtractor, requireEnv } from "figma-skill";
 
 const figma = new FigmaExtractor({
   token: await requireEnv("../../.env", "FIGMA_TOKEN"),
-  cache: true,         // Enable caching (default: true)
-  cacheSize: 100,      // Max cached items
-  maxRetries: 3,       // Retry attempts
-  timeout: 30000,      // Request timeout (ms)
-  concurrent: 10,      // Max concurrent requests
+  cache: true, // Enable caching (default: true)
+  cacheSize: 100, // Max cached items
+  maxRetries: 3, // Retry attempts
+  timeout: 30000, // Request timeout (ms)
+  concurrent: 10, // Max concurrent requests
 });
 ```
 
 **Options:**
+
 - `token` (string, required) - Figma personal access token
 - `cache` (boolean, optional) - Enable response caching
 - `cacheSize` (number, optional) - Max number of cached responses
@@ -31,33 +32,54 @@ const figma = new FigmaExtractor({
 
 ### getFile
 
-Get complete Figma design file.
+Get complete Figma design file or specific nodes by ID.
 
 ```typescript
+// Entire file
 const design = await figma.getFile(fileKey, {
-  format: "toon",     // "toon" (string) or "json" (SimplifiedDesign object)
-  extractors: allExtractors,  // Optional: customize extraction
+  format: "toon",
+  extractors: allExtractors,
   includeComponents: true,
   includeComponentSets: true,
+});
+
+// Specific node only
+const design = await figma.getFile(fileKey, {
+  nodeId: "6001-47121",  // From URL ?node-id= parameter
+  format: "json",
 });
 ```
 
 **Parameters:**
+
 - `fileKey` (string) - Figma file key from URL
 
 **Options:**
+
 - `format` ("toon" | "json") - Output format
   - `"toon"`: Returns string, 30-60% smaller than JSON
   - `"json"`: Returns SimplifiedDesign object
-- `extractors` (Extractors) - Customize what properties to extract
+- `nodeId` (string) - Specific node ID to extract (from URL `node-id` parameter)
+  - Supports URL format: `"6001-47121"` (auto-converts to `"6001:47121"`)
+  - Supports API format: `"6001:47121"`
+  - Supports instance nodes: `"I5666-180910"` or `"I5666:180910"`
+  - Supports multiple nodes: `"1-2;3-4"` or `"1:2;3:4"`
+- `extractors` (ExtractorFn[]) - Customize what properties to extract
 - `includeComponents` (boolean) - Include component definitions
 - `includeComponentSets` (boolean) - Include component set definitions
 
 **Returns:**
+
 - `format: "toon"` - string (TOON format)
 - `format: "json"` - SimplifiedDesign object
 
+**Routing:**
+
+- With `nodeId`: Routes to `/files/{fileKey}/nodes?ids={nodeId}` endpoint
+- Without `nodeId`: Routes to `/files/{fileKey}` endpoint
+
 **SimplifiedDesign:**
+
 ```typescript
 interface SimplifiedDesign {
   name: string;
@@ -79,6 +101,7 @@ const result = await figma.getNodes(fileKey, {
 ```
 
 **Parameters:**
+
 - `fileKey` (string) - Figma file key
 - `options.ids` (string[]) - Array of node IDs
 
@@ -97,12 +120,14 @@ const images = await figma.getImageUrls(fileKey, {
 ```
 
 **Parameters:**
+
 - `fileKey` (string) - Figma file key
 - `options.ids` (string[]) - Node IDs to export
 - `options.format` ("png" | "jpg" | "svg" | "pdf") - Export format
 - `options.scale` (number) - Scale for PNG/JPG (1-4)
 
 **Returns:** Promise<ImageUrl[]>
+
 ```typescript
 interface ImageUrl {
   id: string;
@@ -127,6 +152,7 @@ const downloaded = await figma.downloadImages(fileKey, {
 ```
 
 **Parameters:**
+
 - `fileKey` (string) - Figma file key
 - `options.ids` (string[]) - Node IDs to download
 - `options.outputDir` (string) - Output directory path
@@ -135,6 +161,7 @@ const downloaded = await figma.downloadImages(fileKey, {
 - `options.parallel` (number) - Concurrent download limit
 
 **Returns:** Promise<DownloadedImage[]>
+
 ```typescript
 interface DownloadedImage {
   id: string;
@@ -170,30 +197,37 @@ const componentSets = await figma.getComponentSets(fileKey);
 
 ```typescript
 import {
-  allExtractors,     // Everything (default)
-  layoutAndText,     // Layout + text only
-  contentOnly,       // Text content only
-  visualsOnly,       // Visual properties only
+  allExtractors,
+  // Layout + text only
+  contentOnly,
+  // Everything (default)
+  layoutAndText,
+  // Text content only
+  visualsOnly, // Visual properties only
 } from "figma-skill";
 ```
 
 **allExtractors:** Extract all properties
+
 - Layout: position, size, rotation
 - Visual: fills, strokes, effects
 - Content: text, characters
 - Structure: children, parenting
 
 **layoutAndText:** Layout and text content
+
 - Position, size, rotation
 - Text content and styling
 - Basic structure
 
 **contentOnly:** Text content only
+
 - Text strings
 - Character styles
 - Minimal structure
 
 **visualsOnly:** Visual properties
+
 - Fills, strokes, effects
 - Colors, gradients
 - No position/text
@@ -209,6 +243,7 @@ const design = await figma.getFile(fileKey, {
 ```
 
 **Options:**
+
 - `extractors` (Extractors) - What to extract
 - `nodeFilter` (function) - Filter nodes by condition
 - `maxDepth` (number) - Maximum depth to traverse
@@ -258,6 +293,7 @@ figma.setLogLevel("debug");
 ```
 
 **Levels:**
+
 - `debug` - Detailed logging for development
 - `info` - General information (default)
 - `warn` - Warnings only
@@ -320,19 +356,23 @@ import {
 ## Package Structure
 
 **Classes:**
+
 - `FigmaExtractor` - Main client class
 
 **Utilities:**
+
 - `requireEnv()` - Load environment variables with validation
 - `toToon()` - Convert SimplifiedDesign to TOON format string
 
 **Types:**
+
 - `SimplifiedDesign` - Complete design structure
 - `SimplifiedNode` - Individual node structure
 - `Component` - Component definition
 - `ComponentSet` - Component set definition
 
 **Constants:**
+
 - `allExtractors` - Extract all properties
 - `layoutAndText` - Layout and text only
 - `contentOnly` - Text content only
