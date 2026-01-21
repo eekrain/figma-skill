@@ -12,7 +12,7 @@
 import { FigmaExtractor, requireEnv } from "figma-skill";
 
 // Load token and throw if missing (stops script immediately)
-const token = await requireEnv(".claude/.env", "FIGMA_TOKEN");
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 
 const figma = new FigmaExtractor({
   token,

@@ -4,7 +4,8 @@ Extract a single Figma design to TOON format.
 
 ## User Request
 
-"Extract this Figma design: https://www.figma.com/file/abc123/my-design"
+"Extract this Figma design: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard-NewFlow?node-id=8202-55990&t=Kf92WvG7sYqLpXcD-3
+"
 
 ## AI Agent Workflow
 
@@ -29,7 +30,7 @@ Extract a single Figma design to TOON format.
    import { FigmaExtractor, requireEnv } from "figma-skill";
 
    // Load token and throw if missing (stops script immediately)
-   const token = await requireEnv(".claude/.env", "FIGMA_TOKEN");
+   const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 
    const figma = new FigmaExtractor({ token, cache: true });
    const design = await figma.getFile("abc123", { format: "toon" });
@@ -62,7 +63,7 @@ If you want to process extremely large files (10,000+ nodes) with progress track
 ```typescript
 import { FigmaExtractor, requireEnv } from "figma-skill";
 
-const token = await requireEnv(".claude/.env", "FIGMA_TOKEN");
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token });
 
 const stream = await figma.streamFile("abc123", {

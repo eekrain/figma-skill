@@ -4,7 +4,8 @@ Extract Figma design and download image assets.
 
 ## User Request
 
-"Extract the Figma design and download all the icons: https://www.figma.com/file/abc123/icon-set"
+"Extract the Figma design and download all the icons: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/Profile-Dashboard-NewFlow?node-id=8202-55990&t=Kf92WvG7sYqLpXcD-3
+"
 
 ## AI Agent Workflow
 
@@ -17,7 +18,7 @@ Extract Figma design and download image assets.
    import { FigmaExtractor, requireEnv } from "figma-skill";
 
    // Load token and throw if missing (stops script immediately)
-   const token = await requireEnv(".claude/.env", "FIGMA_TOKEN");
+   const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 
    const figma = new FigmaExtractor({ token, cache: true });
 

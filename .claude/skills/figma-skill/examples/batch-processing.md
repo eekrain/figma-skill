@@ -6,9 +6,9 @@ Extract multiple Figma designs and download all image assets.
 
 "Extract these Figma designs and download all image assets:
 
-- https://www.figma.com/file/abc123/homepage-design
-- https://www.figma.com/file/def456/dashboard-system
-- https://www.figma.com/file/ghi789/component-library
+- https://www.figma.com/design/4BzNqT9dVpLxQmYaC7HkR2/User-Onboarding-Flow?node-id=7203-38120&t=Ax93JqL6WzPoRmTn-8
+- https://www.figma.com/design/9KpVgF4wJuSeTmRbQ1YdH6/Product-Card-Interaction?node-id=9125-45011&t=Qr82MnF4XyLtPkVz-5
+- https://www.figma.com/design/2MzQhL8vXrPdYfCbN3GkT0/Settings-Panel-Modal?node-id=6584-29387&t=Wp76KzV5UfLoBnSd-2
 
 This is a large design system, I need all nodes and assets."
 
@@ -23,7 +23,7 @@ This is a large design system, I need all nodes and assets."
 import { FigmaExtractor, requireEnv } from "figma-skill";
 
 // Load token and throw if missing (stops script immediately)
-const token = await requireEnv(".claude/.env", "FIGMA_TOKEN");
+const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 
 const figma = new FigmaExtractor({
   token,
