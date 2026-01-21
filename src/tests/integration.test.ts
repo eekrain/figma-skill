@@ -373,11 +373,7 @@ describe("Extraction Pipeline Integration", () => {
         type: mockFrame.type as string,
       };
 
-      const filteredChildren = collapseSvgContainers(
-        mockFrame,
-        result,
-        []
-      );
+      const filteredChildren = collapseSvgContainers(mockFrame, result, []);
 
       // Empty array passes the every() check, so it should collapse
       expect(result.type).toBe("IMAGE-SVG");

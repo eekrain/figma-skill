@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "figma-skill": "0.1.0"
+    "figma-skill": "0.1.1"
   },
   "devDependencies": {
     "@types/bun": "latest"

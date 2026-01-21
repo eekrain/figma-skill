@@ -77,23 +77,26 @@ export function extractTextStyle(n: Node): SimplifiedTextStyle | undefined {
     // Font size in pixels
     fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
     // Line height - convert to em or percent
-    lineHeight: style.lineHeightPx && style.fontSize
-      ? `${(style.lineHeightPx / style.fontSize).toFixed(2)}em`
-      : style.lineHeightPercent
-        ? `${style.lineHeightPercent}%`
-        : undefined,
+    lineHeight:
+      style.lineHeightPx && style.fontSize
+        ? `${(style.lineHeightPx / style.fontSize).toFixed(2)}em`
+        : style.lineHeightPercent
+          ? `${style.lineHeightPercent}%`
+          : undefined,
     // Letter spacing - convert to em or pixels
-    letterSpacing: style.letterSpacing && style.fontSize
-      ? style.letterSpacing !== 0
-        ? `${((style.letterSpacing / style.fontSize) * 1000).toFixed(2)}em`
-        : undefined
-      : style.letterSpacing
-        ? `${style.letterSpacing}px`
-        : undefined,
+    letterSpacing:
+      style.letterSpacing && style.fontSize
+        ? style.letterSpacing !== 0
+          ? `${((style.letterSpacing / style.fontSize) * 1000).toFixed(2)}em`
+          : undefined
+        : style.letterSpacing
+          ? `${style.letterSpacing}px`
+          : undefined,
     // Text align (horizontal) - convert to CSS text-align
-    textAlign: style.textAlignHorizontal?.toLowerCase() === "left"
-      ? undefined // default
-      : style.textAlignHorizontal?.toLowerCase(),
+    textAlign:
+      style.textAlignHorizontal?.toLowerCase() === "left"
+        ? undefined // default
+        : style.textAlignHorizontal?.toLowerCase(),
     // Text case - convert to CSS text-transform
     textCase: style.textCase?.toLowerCase(),
     // Text decoration - convert to CSS text-decoration

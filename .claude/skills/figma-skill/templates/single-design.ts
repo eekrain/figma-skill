@@ -6,10 +6,11 @@
  *
  * SETUP:
  * 1. Replace FILE_KEY with actual Figma file key
- * 2. Set NODE_ID to extract specific node (from URL ?node-id= parameter)
- * 3. Replace design-name with meaningful output name
- * 4. Run: bun install && bun --print script.ts && bun run script.ts
- * 5. Cleanup: rm script.ts package.json tsconfig.json && rm -rf node_modules
+ * 2. Replace YYYY-MM-DD-name with meaningful output directory name
+ * 3. Replace design-name with meaningful output file name
+ * 4. Set NODE_ID to extract specific node (from URL ?node-id= parameter)
+ * 5. Run: bun install && bun --print script.ts && bun run script.ts
+ * 6. Cleanup: rm script.ts package.json tsconfig.json && rm -rf node_modules
  *
  * OPTIONAL STREAMING (for very large files 10K+ nodes):
  * If you need progress tracking for very large files, use streamFile() instead:
@@ -34,6 +35,7 @@ const figma = new FigmaExtractor({
 
 // CRITICAL: toon format is token-efficient (30-60% smaller than JSON)
 const FILE_KEY = "your-file-key-here";
+const OUTPUT_DIR = ".claude/figma-outputs/YYYY-MM-DD-name";
 
 // Set NODE_ID to extract specific node (from URL ?node-id= parameter)
 // Example: "6001-47121" or "I5666-180910" (instance node)
@@ -49,5 +51,5 @@ if (NODE_ID) {
 const design = await figma.getFile(FILE_KEY, options);
 
 // design is a string when format is "toon"
-await Bun.write("output/design-name.toon", design);
-console.log(`Design saved to design-name.toon`);
+await Bun.write(`${OUTPUT_DIR}/design-name.toon`, design);
+console.log(`Design saved to ${OUTPUT_DIR}/design-name.toon`);

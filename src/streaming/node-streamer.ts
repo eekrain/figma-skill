@@ -3,13 +3,12 @@
  */
 import type { Node } from "@figma/rest-api-spec";
 
+import { extractFromDesign } from "@/extractors/node-walker";
 import type {
   ExtractorFn,
   SimplifiedNode,
   TraversalOptions,
 } from "@/extractors/types";
-
-import { extractFromDesign } from "@/extractors/node-walker";
 import type { StreamChunk } from "@/extractors/types";
 
 import type { ProgressEmitter } from "./progress-emitter";

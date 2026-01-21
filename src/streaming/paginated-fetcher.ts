@@ -7,9 +7,8 @@
  */
 import type { Node } from "@figma/rest-api-spec";
 
-import type { StreamChunk } from "@/extractors/types";
-
 import { extractFromDesign } from "@/extractors/node-walker";
+import type { StreamChunk } from "@/extractors/types";
 
 import type { FileStreamConfig, FileStreamResult } from "./file-streamer";
 import type { ProgressEmitter } from "./progress-emitter";

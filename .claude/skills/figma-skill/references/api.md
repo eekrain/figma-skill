@@ -339,19 +339,38 @@ During downloads:
 [============================================================] 100% | 45/45
 ```
 
-## Error Types
+## Error Handling
 
 ```typescript
-import {
-  AuthenticationError,
-  FigmaApiError,
-  RateLimitError,
-} from "figma-skill";
+import { FigmaApiError } from "figma-skill";
+
+try {
+  const design = await figma.getFile(fileKey);
+} catch (error) {
+  if (error instanceof FigmaApiError) {
+    if (error.message.includes("401")) {
+      console.error("Invalid FIGMA_TOKEN - check ../../.env");
+    } else if (error.message.includes("429")) {
+      console.error("Rate limited - wait and retry");
+    } else if (
+      error.message.includes("413") ||
+      error.message.includes("payload")
+    ) {
+      console.error("Response too large - use paginated approach");
+    } else {
+      console.error("API error:", error.message);
+    }
+  }
+}
 ```
 
-**AuthenticationError:** Invalid or missing token
-**RateLimitError:** API rate limit exceeded
-**FigmaApiError:** General API errors
+**Common HTTP Status Codes:**
+
+- `401` - Authentication failed (invalid token)
+- `429` - Rate limit exceeded
+- `413` - Payload too large (file too large for single request)
+- `500` - Internal server error (often indicates large file, use pagination)
+- `404` - File or node not found
 
 ## Package Structure
 
@@ -377,3 +396,32 @@ import {
 - `layoutAndText` - Layout and text only
 - `contentOnly` - Text content only
 - `visualsOnly` - Visual properties only
+
+## Image Processing (Advanced)
+
+For advanced image processing with CSS variable generation:
+
+```typescript
+import {
+  generateImageCSSVariables,
+  generateTileBackgroundSize,
+} from "figma-skill";
+
+// Generate CSS variables for responsive image sizing
+const variables = generateImageCSSVariables(1920, 1080, "hero-image");
+// Returns:
+// {
+//   "--original-width-hero-image": "1920px",
+//   "--original-height-hero-image": "1080px",
+//   "--aspect-ratio-hero-image": "1.7778"
+// }
+
+// Generate background-size for TILE mode
+const bgSize = generateTileBackgroundSize(1.5, "hero-image");
+// Returns: "calc(var(--original-width-hero-image) * 1.5) calc(var(--original-height-hero-image) * 1.5)"
+```
+
+**Functions:**
+
+- `generateImageCSSVariables(width, height, fileName)` - Generate CSS variables for image dimensions
+- `generateTileBackgroundSize(scalingFactor, fileName)` - Generate background-size for TILE mode

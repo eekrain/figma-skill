@@ -123,10 +123,7 @@ function _figmaToHex(color: RGBA): CSSHexColor {
  * Format Figma color to CSS rgba() format
  * Matches mcp-reference: formatRGBAColor
  */
-export function formatRGBAColor(
-  color: RGBA,
-  opacity?: number
-): CSSRGBAColor {
+export function formatRGBAColor(color: RGBA, opacity?: number): CSSRGBAColor {
   const a = opacity ?? color.a ?? 1;
   return `rgba(${color.r}, ${color.g}, ${color.b}, ${a})` as CSSRGBAColor;
 }
@@ -155,7 +152,16 @@ function gradientHandlesToAngle(handles: Vector[]): number {
  * Convert Figma gradient stops to CSS gradient string
  */
 function buildGradientString(
-  paint: Extract<Paint, { type: "GRADIENT_LINEAR" | "GRADIENT_RADIAL" | "GRADIENT_ANGULAR" | "GRADIENT_DIAMOND" }>
+  paint: Extract<
+    Paint,
+    {
+      type:
+        | "GRADIENT_LINEAR"
+        | "GRADIENT_RADIAL"
+        | "GRADIENT_ANGULAR"
+        | "GRADIENT_DIAMOND";
+    }
+  >
 ): string {
   const stops = paint.gradientStops
     ?.map((stop) => {

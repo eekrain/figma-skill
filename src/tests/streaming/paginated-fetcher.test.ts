@@ -5,12 +5,13 @@ import type { Node } from "@figma/rest-api-spec";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 import type { StreamChunk } from "@/extractors/types";
-
 import type { FileStreamResult } from "@/streaming/file-streamer";
-import { FigmaApiError, PayloadTooLargeError } from "@/utils/fetch-with-retry";
-
-import { fetchPaginatedFile, isSizeRelatedError } from "@/streaming/paginated-fetcher";
+import {
+  fetchPaginatedFile,
+  isSizeRelatedError,
+} from "@/streaming/paginated-fetcher";
 import { ProgressEmitter } from "@/streaming/progress-emitter";
+import { FigmaApiError, PayloadTooLargeError } from "@/utils/fetch-with-retry";
 
 describe("paginated-fetcher", () => {
   let mockProgress: ProgressEmitter;

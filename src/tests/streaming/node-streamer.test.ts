@@ -4,14 +4,12 @@
 import type { Node } from "@figma/rest-api-spec";
 import { beforeEach, describe, expect, it } from "@jest/globals";
 
+import { allExtractors } from "@/extractors";
 import type {
   SimplifiedNode,
   StreamChunk,
   StreamProgress,
 } from "@/extractors/types";
-
-import { allExtractors } from "@/extractors";
-
 import { streamNodes } from "@/streaming/node-streamer";
 import { ProgressEmitter } from "@/streaming/progress-emitter";
 

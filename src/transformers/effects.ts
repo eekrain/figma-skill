@@ -56,8 +56,7 @@ export function buildSimplifiedEffects(node: Node): SimplifiedEffects {
         offsetX: `${e.offset?.x ?? 0}px`,
         offsetY: `${e.offset?.y ?? 0}px`,
         blur: `${e.radius ?? 0}px`,
-        spread:
-          e.spread !== undefined ? `${e.spread}px` : undefined,
+        spread: e.spread !== undefined ? `${e.spread}px` : undefined,
       }));
 
     if (shadows.length) effects.shadows = shadows;
@@ -65,8 +64,7 @@ export function buildSimplifiedEffects(node: Node): SimplifiedEffects {
 
   // Layer blur
   const layerBlurEffect = nodeWithEffects.effects?.find(
-    (e): e is BlurEffect =>
-      e.type === "LAYER_BLUR" && e.visible !== false
+    (e): e is BlurEffect => e.type === "LAYER_BLUR" && e.visible !== false
   );
   if (layerBlurEffect && layerBlurEffect.radius > 0) {
     effects.layerBlur = `${layerBlurEffect.radius}px`;
@@ -74,8 +72,7 @@ export function buildSimplifiedEffects(node: Node): SimplifiedEffects {
 
   // Background blur (different CSS property)
   const backgroundBlurEffect = nodeWithEffects.effects?.find(
-    (e): e is BlurEffect =>
-      e.type === "BACKGROUND_BLUR" && e.visible !== false
+    (e): e is BlurEffect => e.type === "BACKGROUND_BLUR" && e.visible !== false
   );
   if (backgroundBlurEffect && backgroundBlurEffect.radius > 0) {
     effects.blur = `${backgroundBlurEffect.radius}px`;

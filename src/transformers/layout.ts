@@ -5,11 +5,7 @@
 import type { Node } from "@figma/rest-api-spec";
 
 import { generateCSSShorthand, pixelRound } from "@/utils/common.js";
-import {
-  isFrame,
-  isInAutoLayoutFlow,
-  isLayout,
-} from "@/utils/identity.js";
+import { isFrame, isInAutoLayoutFlow, isLayout } from "@/utils/identity.js";
 
 export interface SimplifiedLayout {
   mode: "none" | "row" | "column";
@@ -58,8 +54,18 @@ type NodeWithLayout = Node & {
     width: number;
     height: number;
   } | null;
-  primaryAxisAlignItems?: "MIN" | "MAX" | "CENTER" | "SPACE_BETWEEN" | "BASELINE";
-  counterAxisAlignItems?: "MIN" | "MAX" | "CENTER" | "SPACE_BETWEEN" | "BASELINE";
+  primaryAxisAlignItems?:
+    | "MIN"
+    | "MAX"
+    | "CENTER"
+    | "SPACE_BETWEEN"
+    | "BASELINE";
+  counterAxisAlignItems?:
+    | "MIN"
+    | "MAX"
+    | "CENTER"
+    | "SPACE_BETWEEN"
+    | "BASELINE";
   paddingTop?: number;
   paddingBottom?: number;
   paddingLeft?: number;
@@ -176,10 +182,7 @@ function buildSimplifiedLayoutValues(
     if (nodeWithLayout.layoutPositioning === "ABSOLUTE") {
       layoutValues.position = "absolute";
     }
-    if (
-      nodeWithLayout.absoluteBoundingBox &&
-      parent.absoluteBoundingBox
-    ) {
+    if (nodeWithLayout.absoluteBoundingBox && parent.absoluteBoundingBox) {
       layoutValues.locationRelativeToParent = {
         x: pixelRound(
           nodeWithLayout.absoluteBoundingBox.x -
@@ -288,10 +291,7 @@ function convertAlign(
       children.reduce((shouldStretch, c) => {
         if (!shouldStretch) return false;
         const childLayout = c as NodeWithLayout;
-        if (
-          childLayout.layoutPositioning === "ABSOLUTE"
-        )
-          return true;
+        if (childLayout.layoutPositioning === "ABSOLUTE") return true;
         if (direction === "horizontal") {
           return childLayout.layoutSizingHorizontal === "FILL";
         } else {
@@ -343,9 +343,7 @@ function convertSelfAlign(
  * Interpret sizing
  * Matches mcp-reference: convertSizing
  */
-function convertSizing(
-  s?: string
-): "fixed" | "fill" | "hug" | undefined {
+function convertSizing(s?: string): "fixed" | "fill" | "hug" | undefined {
   if (s === "FIXED") return "fixed";
   if (s === "FILL") return "fill";
   if (s === "HUG") return "hug";

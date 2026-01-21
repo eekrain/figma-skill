@@ -8,8 +8,8 @@
  *
  * SETUP:
  * 1. Replace FILE_KEY with actual Figma file key
- * 2. Replace NODE_ID with node ID from URL (can use - or : separator)
- * 3. Replace output-name with meaningful output name
+ * 2. Replace YYYY-MM-DD-name with meaningful output directory name
+ * 3. Replace NODE_ID with node ID from URL (can use - or : separator)
  * 4. Run: bun install && bun --print script.ts && bun run script.ts
  * 5. Cleanup: rm script.ts package.json tsconfig.json && rm -rf node_modules
  *
@@ -31,6 +31,7 @@ const figma = new FigmaExtractor({
 
 // CRITICAL: Extract from URL: https://www.figma.com/design/{FILE_KEY}/...?node-id={NODE_ID}
 const FILE_KEY = "your-file-key-here";
+const OUTPUT_DIR = ".claude/figma-outputs/YYYY-MM-DD-name";
 const NODE_ID = "6001-47121"; // Can use URL format (-) or API format (:)
 
 // Extract specific node(s) - nodeId parameter auto-converts - to :
@@ -40,6 +41,9 @@ const design = await figma.getFile(FILE_KEY, {
 });
 
 // Save to output directory
-await Bun.write("output/node-extraction.json", JSON.stringify(design, null, 2));
-console.log(`Node extraction saved to output/node-extraction.json`);
+await Bun.write(
+  `${OUTPUT_DIR}/node-extraction.json`,
+  JSON.stringify(design, null, 2)
+);
+console.log(`Node extraction saved to ${OUTPUT_DIR}/node-extraction.json`);
 console.log(`Extracted ${design.nodes.length} node(s)`);

@@ -12,7 +12,6 @@ import type {
   StyleTypes,
   TraversalContext,
 } from "@/extractors/types";
-
 import { buildSimplifiedEffects } from "@/transformers/effects";
 import { buildSimplifiedLayout } from "@/transformers/layout";
 import { buildSimplifiedStrokes, parsePaint } from "@/transformers/style";
@@ -131,11 +130,7 @@ export const visualsExtractor: ExtractorFn = (node, result, context) => {
     node.children.length > 0;
 
   // fills
-  if (
-    "fills" in node &&
-    Array.isArray(node.fills) &&
-    node.fills.length
-  ) {
+  if ("fills" in node && Array.isArray(node.fills) && node.fills.length) {
     const fills = node.fills
       .map((fill) => parsePaint(fill, hasChildren))
       .reverse();

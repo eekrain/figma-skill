@@ -269,6 +269,57 @@ await Bun.write("output/variables.css", css);
 console.log(`Generated ${colors.size} CSS variables`);
 ```
 
+### Generate Responsive Image CSS Variables
+
+Generate CSS variables for responsive image sizing with TILE mode support.
+
+```typescript
+import {
+  generateImageCSSVariables,
+  generateTileBackgroundSize,
+} from "figma-skill";
+
+const fileKey = "abc123xyz";
+const design = await figma.getFile(fileKey, { format: "json" });
+
+// Find image nodes and generate CSS variables
+const cssVariables: Record<string, string> = {};
+
+design.nodes.forEach((node) => {
+  if (
+    node.width &&
+    node.height &&
+    (node.type === "FRAME" || node.type === "VECTOR")
+  ) {
+    const fileName = node.name.toLowerCase().replace(/\s+/g, "-");
+    const variables = generateImageCSSVariables(
+      node.width,
+      node.height,
+      fileName
+    );
+    Object.assign(cssVariables, variables);
+  }
+});
+
+// Generate CSS file
+let css = ":root {\n";
+for (const [name, value] of Object.entries(cssVariables)) {
+  css += `  ${name}: ${value};\n`;
+}
+css += "}\n";
+
+// TILE mode usage
+css += "\n.hero-tile {\n";
+css += `  background-size: ${generateTileBackgroundSize(1.5, "hero-image")};\n`;
+css += "  background-repeat: tile;\n";
+css += "}\n";
+
+await Bun.write("output/responsive-images.css", css);
+console.log(
+  `Generated CSS variables for ${Object.keys(cssVariables).length / 3} images`
+);
+```
+
 ### Download All Frame Images
 
 Download all frames as high-resolution PNGs.
@@ -397,11 +448,7 @@ console.log(`Extracted ${componentSetsList.length} component sets`);
 ### Basic Error Handling
 
 ```typescript
-import {
-  AuthenticationError,
-  FigmaApiError,
-  RateLimitError,
-} from "figma-skill";
+import { FigmaApiError } from "figma-skill";
 
 const token = await requireEnv("../../.env", "FIGMA_TOKEN");
 const figma = new FigmaExtractor({ token, cache: true });
@@ -410,12 +457,16 @@ try {
   const design = await figma.getFile("abc123", { format: "toon" });
   await Bun.write("output/design.toon", design);
 } catch (error) {
-  if (error instanceof AuthenticationError) {
-    console.error("Invalid FIGMA_TOKEN - check ../../.env");
-  } else if (error instanceof RateLimitError) {
-    console.error("Rate limited - wait and retry");
-  } else if (error instanceof FigmaApiError) {
-    console.error("API error:", error.message);
+  if (error instanceof FigmaApiError) {
+    if (error.message.includes("401")) {
+      console.error("Invalid FIGMA_TOKEN - check ../../.env");
+    } else if (error.message.includes("429")) {
+      console.error("Rate limited - wait and retry");
+    } else if (error.message.includes("413") || error.message.includes("500")) {
+      console.error("File too large - automatic pagination will retry");
+    } else {
+      console.error("API error:", error.message);
+    }
   } else {
     console.error("Unknown error:", error);
   }

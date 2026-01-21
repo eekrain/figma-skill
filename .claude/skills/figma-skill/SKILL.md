@@ -185,19 +185,27 @@ This skill includes templates and examples for common workflows:
 **Error Handling:**
 
 ```typescript
-import {
-  AuthenticationError,
-  FigmaApiError,
-  RateLimitError,
-} from "figma-skill";
+import { FigmaApiError } from "figma-skill";
 
 try {
   const design = await figma.getFile(fileKey);
 } catch (error) {
-  if (error instanceof AuthenticationError) {
-    console.error("Invalid FIGMA_TOKEN - check ../../.env");
-  } else if (error instanceof RateLimitError) {
-    console.error("Rate limited - wait and retry");
+  if (error instanceof FigmaApiError) {
+    if (
+      error.message.includes("401") ||
+      error.message.includes("authentication")
+    ) {
+      console.error("Invalid FIGMA_TOKEN - check ../../.env");
+    } else if (
+      error.message.includes("429") ||
+      error.message.includes("rate")
+    ) {
+      console.error("Rate limited - wait and retry");
+    } else if (error.message.includes("413") || error.message.includes("500")) {
+      console.error("File too large - automatic pagination will retry");
+    } else {
+      console.error("API error:", error.message);
+    }
   }
 }
 ```
@@ -234,7 +242,7 @@ FIGMA_TOKEN=your_token_here
 
 ```json
 {
-  "dependencies": { "figma-skill": "0.1.0" },
+  "dependencies": { "figma-skill": "0.1.1" },
   "devDependencies": { "@types/bun": "latest" }
 }
 ```

@@ -1,6 +1,10 @@
 /**
  * FigmaExtractor - Main client class for figma-skill
  */
+import type { Component, ComponentSet, Node } from "@figma/rest-api-spec";
+
+import { allExtractors } from "@/extractors/built-in";
+import { extractFromDesign } from "@/extractors/node-walker";
 import type {
   DownloadImagesOptions,
   DownloadedImageResult,
@@ -13,15 +17,6 @@ import type {
   SimplifiedNode,
   StreamChunk,
 } from "@/extractors/types";
-
-import type {
-  Component,
-  ComponentSet,
-  Node,
-} from "@figma/rest-api-spec";
-
-import { allExtractors } from "@/extractors/built-in";
-import { extractFromDesign } from "@/extractors/node-walker";
 import { downloadImages as downloadImagesUtil } from "@/images/downloader";
 import type {
   FileStreamConfig,

@@ -23,7 +23,7 @@ Extract a single Figma design to TOON format.
      "module": "script.ts",
      "type": "module",
      "private": true,
-     "dependencies": { "figma-skill": "0.1.0" },
+     "dependencies": { "figma-skill": "0.1.1" },
      "devDependencies": { "@types/bun": "latest" },
      "peerDependencies": { "typescript": "^5" }
    }

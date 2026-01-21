@@ -11,13 +11,12 @@ import {
 import { promises as fs } from "fs";
 import { join } from "path";
 
-import { ProgressEmitter } from "@/streaming/progress-emitter";
-
 import {
   deduplicateDownloads,
   downloadImages,
   downloadSingle,
 } from "@/images/downloader";
+import { ProgressEmitter } from "@/streaming/progress-emitter";
 
 // Mock sharp before importing the module that uses it
 jest.mock("sharp", () => {

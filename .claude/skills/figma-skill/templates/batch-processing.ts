@@ -5,9 +5,10 @@
  * Use this when user provides multiple Figma URLs.
  *
  * SETUP:
- * 1. Replace fileKeys array with actual file keys and names
- * 2. Run: bun install && bun --print script.ts && bun run script.ts
- * 3. Cleanup: rm script.ts package.json tsconfig.json && rm -rf node_modules
+ * 1. Replace OUTPUT_DIR with meaningful output directory name
+ * 2. Replace fileKeys array with actual file keys and names
+ * 3. Run: bun install && bun --print script.ts && bun run script.ts
+ * 4. Cleanup: rm script.ts package.json tsconfig.json && rm -rf node_modules
  */
 import { FigmaExtractor, requireEnv } from "figma-skill";
 
@@ -20,7 +21,8 @@ const figma = new FigmaExtractor({
   concurrent: 5,
 });
 
-// Define files to process
+// Define output directory and files to process
+const OUTPUT_DIR = ".claude/figma-outputs/YYYY-MM-DD-batch";
 const files = [
   { key: "key1", name: "design-name-1" },
   { key: "key2", name: "design-name-2" },
@@ -39,7 +41,7 @@ for (const { key, name } of files) {
     console.log(`[1/3] Extracting design...`);
     const design = await figma.getFile(key, { format: "json" });
     const toonDesign = await figma.getFile(key, { format: "toon" });
-    await Bun.write(`output/${name}.toon`, toonDesign);
+    await Bun.write(`${OUTPUT_DIR}/${name}.toon`, toonDesign);
     console.log(`✓ Extracted ${design.nodes.length} nodes\n`);
 
     // Find all image nodes
@@ -57,12 +59,12 @@ for (const { key, name } of files) {
     if (imageNodes.length > 0) {
       const downloaded = await figma.downloadImages(key, {
         ids: imageNodes,
-        outputDir: `output/${name}-assets`,
+        outputDir: `${OUTPUT_DIR}/${name}-assets`,
         format: "svg",
         parallel: 5,
       });
       console.log(
-        `✓ Downloaded ${downloaded.length} assets to ${name}-assets/\n`
+        `✓ Downloaded ${downloaded.length} assets to ${OUTPUT_DIR}/${name}-assets/\n`
       );
 
       results.push({

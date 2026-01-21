@@ -368,9 +368,12 @@ export type StyleTypes =
  * Re-exports from style transformer (updated in Phase 1)
  */
 export type SimplifiedFill = import("../transformers/style").SimplifiedFill;
-export type SimplifiedImageFill = import("../transformers/style").SimplifiedImageFill;
-export type SimplifiedGradientFill = import("../transformers/style").SimplifiedGradientFill;
-export type SimplifiedPatternFill = import("../transformers/style").SimplifiedPatternFill;
+export type SimplifiedImageFill =
+  import("../transformers/style").SimplifiedImageFill;
+export type SimplifiedGradientFill =
+  import("../transformers/style").SimplifiedGradientFill;
+export type SimplifiedPatternFill =
+  import("../transformers/style").SimplifiedPatternFill;
 export type ColorValue = import("../transformers/style").ColorValue;
 export type CSSRGBAColor = import("../transformers/style").CSSRGBAColor;
 export type CSSHexColor = import("../transformers/style").CSSHexColor;
