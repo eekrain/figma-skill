@@ -50,6 +50,19 @@ This plan details the enhancements needed to achieve feature parity with the `mc
 
 ## Implementation Plan
 
+**⚠️ CRITICAL REMINDER: Create a git commit after EACH successful phase!**
+
+After completing any phase and verifying all checks pass:
+```bash
+git add .
+git commit -m "refactor: phase X - [brief description]
+
+- Summary of changes
+- Verification results
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
 ### Phase 0: Structural Refactoring
 
 **Goal:** Reorganize figma-skill directory structure to match mcp-reference for codebase familiarity.
@@ -770,7 +783,9 @@ npm test                      # Ensure tests pass
 
 ##### Post-Phase Verification Checklist
 
-After completing EACH phase:
+**⚠️ IMPORTANT: Create a git commit AFTER each successful phase!**
+
+After completing EACH phase and verifying all checks pass:
 
 ```bash
 # 1. Type checking
@@ -785,7 +800,13 @@ npm test
 # 4. Build
 npm run build
 
-# 5. Quick smoke test (if applicable)
+# 5. ✅ CREATE GIT COMMIT (after all verifications pass)
+git add .
+git commit -m "refactor: phase X - [brief description]
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# 6. Quick smoke test (if applicable)
 node -e "const { FigmaExtractor } = require('./dist'); console.log('✅ Import works')"
 ```
 
@@ -2157,6 +2178,11 @@ npm run test:coverage # Coverage maintained (if applicable)
 7. **Phase 6**: Export consolidation
 
 Each phase should be tested independently before proceeding.
+
+**⚠️ CRITICAL: Create a git commit after EACH successful phase!**
+- Run all verifications (TypeScript, ESLint, tests, build)
+- If all pass: `git add . && git commit -m "refactor: phase X - [description]"`
+- This ensures you can roll back if issues arise
 
 **IMPORTANT:** Phase 0 is the foundation for all other phases. Without structural alignment to mcp-reference, the subsequent phases will be difficult to implement and maintain.
 
