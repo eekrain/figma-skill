@@ -224,6 +224,39 @@ try {
 - Add asset download only if needed
 - Use streaming only for very large files (10K+ nodes with explicit progress needs)
 
+## Troubleshooting & Common Issues
+
+### Quick Diagnostics
+
+Before diving into specific issues, verify:
+
+1. ✅ Running from output directory (not project root)
+2. ✅ .env file exists at `../../.env` with valid FIGMA_TOKEN
+3. ✅ Node modules installed (`bun install`)
+4. ✅ System libraries available (NixOS users: see below)
+
+### Common Issues
+
+| Error                                            | Solution                                    |
+| ------------------------------------------------ | ------------------------------------------- |
+| `libstdc++.so.6: cannot open shared object file` | NixOS: Configure `nix-ld` with `gcc.cc.lib` |
+| `Rate limited! Retry-After: 165479`              | Wait 1-2 minutes, then retry                |
+| `Cannot find module './dist/utils/dotenv'`       | Run from correct directory                  |
+| `nodeId does not exist in type GetFileOptions`   | Use `as SimplifiedDesign` assertion         |
+
+### System-Specific Setup
+
+**NixOS users:** Configure `nix-ld` to handle system library dependencies:
+
+```nix
+programs.nix-ld = {
+  enable = true;
+  libraries = with pkgs; [ gcc.cc.lib ];
+};
+```
+
+For comprehensive troubleshooting, see [references/troubleshooting.md](references/troubleshooting.md)
+
 ## Dependencies
 
 **Runtime:** Bun (for ESM support and performance)

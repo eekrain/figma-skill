@@ -12,6 +12,7 @@ export type {
   StreamProgress,
   ImageUrlResult,
   DownloadedImageResult,
+  NodeId,
 } from "@/extractors/types";
 
 // Re-export Figma API types users commonly need

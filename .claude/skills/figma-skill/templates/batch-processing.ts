@@ -4,6 +4,17 @@
  * Extracts multiple Figma designs and downloads all image assets.
  * Use this when user provides multiple Figma URLs.
  *
+ * CRITICAL SETUP NOTES:
+ * - Create output directory FIRST: mkdir -p .claude/figma-outputs/YYYY-MM-DD-name
+ * - cd into output directory BEFORE running: cd .claude/figma-outputs/YYYY-MM-DD-name
+ * - .env file should be at: ../../.env (project root's .claude/.env)
+ *
+ * TROUBLESHOOTING:
+ * - If you get "libstdc++.so.6" error: You're on NixOS, configure nix-ld
+ * - If you get "Cannot find module": Check your working directory
+ * - If rate limited: Wait 1-2 minutes, then retry (or reduce concurrent setting)
+ * - See: references/troubleshooting.md for detailed help
+ *
  * SETUP:
  * 1. Replace OUTPUT_DIR with meaningful output directory name
  * 2. Replace fileKeys array with actual file keys and names

@@ -38,7 +38,7 @@ export default [
     },
   },
   {
-    ignores: ["dist", "node_modules", "*.config.js"],
+    ignores: ["dist", "node_modules", "*.config.js", ".claude"],
   },
   {
     files: ["**/*.test.ts", "**/*.test.js"],

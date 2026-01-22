@@ -6,6 +6,17 @@
  *
  * URL Example: https://www.figma.com/design/7kRmPqZ8fTnQJ9bH4LxC0a/...?node-id=6001-47121
  *
+ * CRITICAL SETUP NOTES:
+ * - Create output directory FIRST: mkdir -p .claude/figma-outputs/YYYY-MM-DD-name
+ * - cd into output directory BEFORE running: cd .claude/figma-outputs/YYYY-MM-DD-name
+ * - .env file should be at: ../../.env (project root's .claude/.env)
+ *
+ * TROUBLESHOOTING:
+ * - If you get "libstdc++.so.6" error: You're on NixOS, configure nix-ld
+ * - If you get "Cannot find module": Check your working directory
+ * - If rate limited: Wait 1-2 minutes, then retry
+ * - See: references/troubleshooting.md for detailed help
+ *
  * SETUP:
  * 1. Replace FILE_KEY with actual Figma file key
  * 2. Replace YYYY-MM-DD-name with meaningful output directory name
@@ -33,6 +44,9 @@ const figma = new FigmaExtractor({
 const FILE_KEY = "your-file-key-here";
 const OUTPUT_DIR = ".claude/figma-outputs/YYYY-MM-DD-name";
 const NODE_ID = "6001-47121"; // Can use URL format (-) or API format (:)
+
+// Note: npm package v0.1.0 had outdated types (fixed in v0.1.1+)
+// If using v0.1.0, use: const design = await figma.getFile(...) as SimplifiedDesign;
 
 // Extract specific node(s) - nodeId parameter auto-converts - to :
 const design = await figma.getFile(FILE_KEY, {

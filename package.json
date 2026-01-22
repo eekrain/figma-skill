@@ -1,6 +1,6 @@
 {
   "name": "figma-skill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Efficient, modular Figma design data extraction for AI agents and developers",
   "type": "module",
   "main": "./dist/index.js",

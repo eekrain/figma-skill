@@ -1,4 +1,17 @@
 {
+  "_comment": [
+    "FIGMA-SKILL OUTPUT DIRECTORY CONFIGURATION",
+    "",
+    "TROUBLESHOOTING:",
+    "- ESLint errors from parent project? Add .claude/figma-outputs/** to parent's ignores",
+    "- Type errors? See references/troubleshooting.md",
+    "",
+    "SETUP NOTES:",
+    "- Place this file in: .claude/figma-outputs/YYYY-MM-DD-name/package.json",
+    "- Then run: bun install",
+    "",
+    "For help: see references/troubleshooting.md"
+  ],
   "name": "yyyy-mm-dd-the-name-of-the-design",
   "module": "script.ts",
   "type": "module",

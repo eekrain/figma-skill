@@ -149,8 +149,9 @@ export async function fetchWithRetry(
       // Handle rate limiting
       if (response.status === 429) {
         const retryAfter = response.headers.get("Retry-After");
+        // Cap retry delay at 60 seconds to avoid extremely long waits
         const delay = retryAfter
-          ? parseInt(retryAfter, 10) * 1000
+          ? Math.min(parseInt(retryAfter, 10) * 1000, 60000)
           : calculateDelay(attempt, initialDelay, maxDelay);
 
         console.log(

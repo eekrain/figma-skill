@@ -4,6 +4,17 @@
  * Extracts Figma design and downloads image assets.
  * Use this when user mentions downloading images, icons, or assets.
  *
+ * CRITICAL SETUP NOTES:
+ * - Create output directory FIRST: mkdir -p .claude/figma-outputs/YYYY-MM-DD-name
+ * - cd into output directory BEFORE running: cd .claude/figma-outputs/YYYY-MM-DD-name
+ * - .env file should be at: ../../.env (project root's .claude/.env)
+ *
+ * TROUBLESHOOTING:
+ * - If you get "libstdc++.so.6" error: You're on NixOS, configure nix-ld
+ * - If you get "Cannot find module": Check your working directory
+ * - If rate limited: Wait 1-2 minutes, then retry
+ * - See: references/troubleshooting.md for detailed help
+ *
  * SETUP:
  * 1. Replace FILE_KEY with actual Figma file key
  * 2. Replace YYYY-MM-DD-name with meaningful output directory name
