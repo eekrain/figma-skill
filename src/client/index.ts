@@ -33,7 +33,7 @@ import {
   simplifyComponentSets,
   simplifyComponents,
 } from "@/transformers/component";
-import { toToon } from "@/transformers/toon";
+import { toToon, toToonLines } from "@/transformers/toon";
 import { FigmaCache } from "@/utils/cache";
 import {
   AuthenticationError,
@@ -41,7 +41,7 @@ import {
   PayloadTooLargeError,
   fetchWithRetry,
 } from "@/utils/fetch-with-retry";
-import { debug, info, setLogLevel } from "@/utils/logger";
+import { debug, info, setLogLevel, warn } from "@/utils/logger";
 import { validateNodeId } from "@/utils/node-id";
 import { RateLimiter } from "@/utils/rate-limiter";
 
@@ -183,6 +183,37 @@ export class FigmaExtractor {
   }
 
   /**
+   * Fetch style metadata for a file
+   * Returns mapping of style IDs to their human-readable names
+   */
+  private async getStyles(fileKey: string): Promise<Record<string, { name: string }>> {
+    try {
+      const response = await this.rateLimiter.execute(() =>
+        this.request<{
+          meta?: {
+            styles?: Array<{ key: string; name: string; style_type: string }>;
+          };
+        }>(`/files/${fileKey}/styles`, {
+          cacheKey: ["styles", fileKey],
+        })
+      );
+
+      const styles: Record<string, { name: string }> = {};
+      if (response.meta?.styles) {
+        for (const style of response.meta.styles) {
+          styles[style.key] = { name: style.name };
+        }
+      }
+
+      return styles;
+    } catch (error) {
+      // Don't fail if styles endpoint errors - just return empty
+      warn(`Failed to fetch styles for ${fileKey}:`, error);
+      return {};
+    }
+  }
+
+  /**
    * Fetch a complete Figma file or specific node
    *
    * When nodeId is provided, fetches only that specific node.
@@ -237,16 +268,24 @@ export class FigmaExtractor {
     // Get extractors from options or use default allExtractors
     const extractors = options?.extractors || allExtractors;
 
-    // Apply extraction pipeline
+    // Fetch style metadata for name resolution
+    const extraStyles = await this.getStyles(fileKey);
+
+    // Apply extraction pipeline - only pass visible children, not the DOCUMENT wrapper
+    // Type assertion: response.document is a DocumentNode with children
+    const document = response.document as { children: Node[] };
+    const visibleChildren = document.children.filter(
+      (n) => n.visible !== false
+    );
     const { nodes, globalVars } = extractFromDesign(
-      [response.document],
+      visibleChildren,
       extractors,
       {
         maxDepth: options?.maxDepth,
         nodeFilter: options?.nodeFilter,
         afterChildren: options?.afterChildren,
       },
-      { styles: {} }
+      { styles: {}, extraStyles }
     );
     console.log(`[DEBUG] Extraction complete: ${nodes.length} nodes extracted`);
 
@@ -370,16 +409,24 @@ export class FigmaExtractor {
       })
     );
 
+    // Fetch style metadata for name resolution
+    const extraStyles = await this.getStyles(fileKey);
+
     const extractors = options.extractors || allExtractors;
+    // Extract document from each node response and filter for visibility
+    // Type assertion: each node response has a document property
+    const visibleNodes = Object.values(response.nodes)
+      .map((n) => (n as unknown as { document: Node }).document)
+      .filter((n) => n.visible !== false);
     const { nodes, globalVars } = extractFromDesign(
-      Object.values(response.nodes),
+      visibleNodes,
       extractors,
       {
         maxDepth: options.maxDepth,
         nodeFilter: options.nodeFilter,
         afterChildren: options.afterChildren,
       },
-      { styles: {} }
+      { styles: {}, extraStyles }
     );
 
     const design: SimplifiedDesign = {
@@ -395,6 +442,43 @@ export class FigmaExtractor {
     }
 
     return design;
+  }
+
+  /**
+   * Get file as Toon format stream
+   * Memory-efficient streaming of Toon lines for large outputs
+   *
+   * @param fileKey - The Figma file key
+   * @param options - Get file options (format is always 'toon' for this method)
+   * @returns Async generator of Toon format lines
+   *
+   * @example
+   * ```typescript
+   * const stream = await client.getFileStream('fileKey');
+   * for await (const line of stream) {
+   *   console.log(line);
+   * }
+   * ```
+   */
+  async getFileStream(
+    fileKey: string,
+    options?: Omit<GetFileOptions, "format">
+  ): Promise<AsyncIterable<string>> {
+    info(`Streaming file as Toon: ${fileKey}`, { nodeId: options?.nodeId });
+
+    // Get the design (JSON format)
+    const design = await this.getFile(fileKey, { ...options, format: "json" });
+
+    // Convert to Toon lines for streaming
+    // Type assertion: we know format: 'json' returns SimplifiedDesign
+    const toonLines = toToonLines(design as SimplifiedDesign);
+
+    // Return as async iterable
+    return (async function* () {
+      for (const line of toonLines) {
+        yield line;
+      }
+    })();
   }
 
   /**
@@ -440,9 +524,13 @@ export class FigmaExtractor {
     const extractors = options.extractors || allExtractors;
 
     // Apply extraction pipeline to all fetched nodes
-    const nodesArray = Object.values(response.nodes);
+    // Extract document from each node response and filter for visibility
+    // Type assertion: each node response has a document property
+    const visibleNodes = Object.values(response.nodes)
+      .map((n) => (n as unknown as { document: Node }).document)
+      .filter((n) => n.visible !== false);
     const { nodes, globalVars } = extractFromDesign(
-      nodesArray,
+      visibleNodes,
       extractors,
       {
         maxDepth: options.maxDepth,
@@ -631,8 +719,14 @@ export class FigmaExtractor {
     const progress = new ProgressEmitter();
 
     // Create async generator with progress emitter attached
+    // Only pass visible children, not the DOCUMENT wrapper
+    // Type assertion: response.document is a DocumentNode with children
+    const document = response.document as { children: Node[] };
+    const visibleChildren = document.children.filter(
+      (n) => n.visible !== false
+    );
     const generator = streamFile(
-      [response.document],
+      visibleChildren,
       extractors,
       {
         chunkSize: config.chunkSize || 50,
@@ -737,8 +831,13 @@ export class FigmaExtractor {
     const progress = new ProgressEmitter();
 
     // Create async generator with progress emitter attached
+    // Extract document from each node response and filter for visibility
+    // Type assertion: each node response has a document property
+    const visibleNodes = Object.values(response.nodes)
+      .map((n) => (n as unknown as { document: Node }).document)
+      .filter((n) => n.visible !== false);
     const generator = streamNodesUtil(
-      Object.values(response.nodes),
+      visibleNodes,
       extractors,
       {
         chunkSize: config.chunkSize || 50,

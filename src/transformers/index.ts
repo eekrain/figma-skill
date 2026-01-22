@@ -31,7 +31,7 @@ export type {
 } from "./component";
 
 // Keep only Toon format (public API feature)
-export { toToon, fromToon } from "./toon";
+export { toToon, toToonLines, fromToon } from "./toon";
 
 // DO NOT export individual transformer functions
 // They are internal - users use extractors instead

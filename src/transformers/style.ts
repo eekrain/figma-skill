@@ -245,13 +245,23 @@ export function parsePaint(
     if (scaleMode === "FILL") {
       result.backgroundSize = "cover";
       result.objectFit = "cover";
+      // FILL mode may need dimensions for proper aspect ratio handling
+      result.imageDownloadArguments = {
+        needsCropping: false,
+        requiresImageDimensions: false,
+      };
     } else if (scaleMode === "FIT") {
       result.backgroundSize = "contain";
       result.objectFit = "contain";
+      // FIT mode needs dimensions for proper containment
+      result.imageDownloadArguments = {
+        needsCropping: false,
+        requiresImageDimensions: true,
+      };
     } else if (scaleMode === "TILE") {
       result.backgroundRepeat = "repeat";
       result.backgroundSize = "auto";
-      // Note: TILE mode may need cropping for proper display
+      // TILE mode may need cropping for proper display
       result.imageDownloadArguments = {
         needsCropping: !forContainer,
         requiresImageDimensions: true,
@@ -259,6 +269,11 @@ export function parsePaint(
     } else if (scaleMode === "STRETCH") {
       result.backgroundSize = "100% 100%";
       result.objectFit = "fill";
+      // STRETCH mode needs dimensions
+      result.imageDownloadArguments = {
+        needsCropping: false,
+        requiresImageDimensions: true,
+      };
     }
 
     result.isBackground = !forContainer;

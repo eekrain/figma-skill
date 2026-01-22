@@ -47,17 +47,30 @@ export function buildSimplifiedEffects(node: Node): SimplifiedEffects {
           e.visible !== false &&
           (e.type === "DROP_SHADOW" || e.type === "INNER_SHADOW")
       )
-      .map((e) => ({
-        type:
-          e.type === "DROP_SHADOW"
-            ? ("drop-shadow" as const)
-            : ("inner-shadow" as const),
-        color: formatRGBAColor(e.color, e.color?.a ?? 1),
-        offsetX: `${e.offset?.x ?? 0}px`,
-        offsetY: `${e.offset?.y ?? 0}px`,
-        blur: `${e.radius ?? 0}px`,
-        spread: e.spread !== undefined ? `${e.spread}px` : undefined,
-      }));
+      .map((e) => {
+        const shadow: {
+          type: "drop-shadow" | "inner-shadow";
+          color: string;
+          offsetX: string;
+          offsetY: string;
+          blur: string;
+          spread?: string;
+        } = {
+          type:
+            e.type === "DROP_SHADOW"
+              ? ("drop-shadow" as const)
+              : ("inner-shadow" as const),
+          color: formatRGBAColor(e.color, e.color?.a ?? 1),
+          offsetX: `${e.offset?.x ?? 0}px`,
+          offsetY: `${e.offset?.y ?? 0}px`,
+          blur: `${e.radius ?? 0}px`,
+        };
+        // Only add spread if it exists
+        if (e.spread !== undefined) {
+          shadow.spread = `${e.spread}px`;
+        }
+        return shadow;
+      });
 
     if (shadows.length) effects.shadows = shadows;
   }

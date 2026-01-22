@@ -121,7 +121,8 @@ function buildSimplifiedFrameValues(
 
   const nodeWithLayout = n as NodeWithLayout;
 
-  frameValues.justifyContent = convertAlign(
+  // Only add justifyContent if not default (MIN = flex-start)
+  const justifyContent = convertAlign(
     nodeWithLayout.primaryAxisAlignItems ?? "MIN",
     {
       children: n.children ?? [],
@@ -129,7 +130,12 @@ function buildSimplifiedFrameValues(
       mode: frameValues.mode as "row" | "column",
     }
   );
-  frameValues.alignItems = convertAlign(
+  if (justifyContent !== undefined) {
+    frameValues.justifyContent = justifyContent;
+  }
+
+  // Only add alignItems if not default (MIN = flex-start)
+  const alignItems = convertAlign(
     nodeWithLayout.counterAxisAlignItems ?? "MIN",
     {
       children: n.children ?? [],
@@ -137,10 +143,24 @@ function buildSimplifiedFrameValues(
       mode: frameValues.mode as "row" | "column",
     }
   );
-  frameValues.alignSelf = convertSelfAlign(nodeWithLayout.layoutAlign);
+  if (alignItems !== undefined) {
+    frameValues.alignItems = alignItems;
+  }
 
-  frameValues.wrap = n.layoutWrap === "WRAP" ? true : undefined;
-  frameValues.gap = n.itemSpacing ? `${n.itemSpacing ?? 0}px` : undefined;
+  // Only add alignSelf if not default (MIN/INHERIT = flex-start)
+  const alignSelf = convertSelfAlign(nodeWithLayout.layoutAlign);
+  if (alignSelf !== undefined) {
+    frameValues.alignSelf = alignSelf;
+  }
+
+  // Only add wrap property if true (omit if false)
+  if (n.layoutWrap === "WRAP") {
+    frameValues.wrap = true;
+  }
+  // Only add gap property if itemSpacing exists
+  if (n.itemSpacing) {
+    frameValues.gap = `${n.itemSpacing}px`;
+  }
 
   if (
     nodeWithLayout.paddingTop ||

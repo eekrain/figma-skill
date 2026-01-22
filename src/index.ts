@@ -41,7 +41,7 @@ export {
 } from "@/extractors/index";
 
 // Toon format (unique advantage - keep!)
-export { toToon, fromToon } from "@/transformers/toon";
+export { toToon, toToonLines, fromToon } from "@/transformers/toon";
 
 // Logger (minimal - users control their own logging)
 export { setLogLevel, getLogLevel } from "@/utils/logger";
