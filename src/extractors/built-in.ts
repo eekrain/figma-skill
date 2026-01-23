@@ -14,6 +14,7 @@ import type {
 } from "@/extractors/types";
 import { buildSimplifiedEffects } from "@/transformers/effects";
 import { buildSimplifiedLayout } from "@/transformers/layout";
+import { buildSimplifiedMask } from "@/transformers/mask";
 import { buildSimplifiedStrokes, parsePaint } from "@/transformers/style";
 import {
   extractNodeText,
@@ -213,6 +214,17 @@ export const componentExtractor: ExtractorFn = (node, result) => {
   }
 };
 
+/**
+ * Extracts mask information
+ * Matches mcp-reference: maskExtractor
+ */
+export const maskExtractor: ExtractorFn = (node, result) => {
+  const maskInfo = buildSimplifiedMask(node);
+  if (maskInfo.isMask || maskInfo.maskId) {
+    result.mask = maskInfo;
+  }
+};
+
 // -------------------- CONVENIENCE COMBINATIONS --------------------
 
 // Convenience combinations (matches mcp-reference)
@@ -221,6 +233,7 @@ export const allExtractors = [
   textExtractor,
   visualsExtractor,
   componentExtractor,
+  maskExtractor,
 ];
 
 export const layoutAndText = [layoutExtractor, textExtractor];

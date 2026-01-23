@@ -50,6 +50,8 @@ export interface SimplifiedNode {
   componentId?: string;
   /** Component properties (if component extractor enabled) */
   componentProperties?: Array<{ name: string; value: string; type: string }>;
+  /** Mask information (if mask extractor enabled) */
+  mask?: import("../transformers/mask").SimplifiedMask;
   /** Child nodes */
   children?: SimplifiedNode[];
 }

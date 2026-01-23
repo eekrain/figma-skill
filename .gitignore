@@ -9,3 +9,26 @@ official-skills-examples
 example-outputs
 mcp-reference-fork-bao
 mcp-reference-fork-bao
+
+# Test fixtures and generated test files
+src/tests/fixtures/test-images/
+src/tests/fixtures/output/
+src/tests/**/*.test.ts.snap
+src/tests/__image_snapshots__/
+src/tests/coverage/
+
+# Test outputs and temp directories
+tmp/
+temp/
+*.tmp
+
+# Test notes
+tes.md
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Jest cache
+.jest/

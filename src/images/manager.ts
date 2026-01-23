@@ -13,6 +13,15 @@ import {
   downloadImagesDeduplicated,
 } from "./downloader";
 import {
+  detectMaskRelationships,
+  type MaskRelationship,
+} from "./mask-detector";
+import {
+  type MaskDownloadOptions,
+  type MaskDownloadResult,
+  downloadImagesWithMasks,
+} from "./mask-downloader";
+import {
   type ProcessedImage,
   generateDimensionCSS,
   getImageMetadata,
@@ -61,11 +70,31 @@ export interface ImageOperationResult {
  * Manager for image operations
  */
 export class ImageManager {
+  private maskDetectionEnabled = true;
+
   /**
-   * Download and process images from Figma
+   * Enable or disable mask detection and compositing
+   *
+   * @param enabled - Whether to enable mask detection
+   */
+  setMaskDetection(enabled: boolean): void {
+    this.maskDetectionEnabled = enabled;
+  }
+
+  /**
+   * Check if mask detection is enabled
+   *
+   * @returns True if mask detection is enabled
+   */
+  isMaskDetectionEnabled(): boolean {
+    return this.maskDetectionEnabled;
+  }
+
+  /**
+   * Download and process images from Figma with mask support
    *
    * @param items - Image URLs with node IDs
-   * @param nodes - Corresponding Figma nodes for crop calculations
+   * @param nodes - Corresponding Figma nodes for crop calculations and mask detection
    * @param downloadOptions - Download options
    * @param processingConfig - Processing configuration
    * @returns Complete operation results
@@ -79,11 +108,52 @@ export class ImageManager {
     // Create node map for easy lookup
     const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
-    // Download images with deduplication
-    const downloads = await downloadImagesDeduplicated(items, {
-      ...downloadOptions,
-      progress: downloadOptions.progress,
-    });
+    // Detect mask relationships if enabled
+    let maskRelationships: MaskRelationship[] = [];
+    if (this.maskDetectionEnabled) {
+      // Find parent nodes that might contain masked children
+      for (const node of nodes) {
+        if (
+          node.type === "FRAME" ||
+          node.type === "GROUP" ||
+          node.type === "INSTANCE" ||
+          node.type === "COMPONENT"
+        ) {
+          const detected = detectMaskRelationships(node);
+          maskRelationships.push(...detected);
+        }
+      }
+    }
+
+    // Use mask-aware downloader if masks detected and enabled
+    let downloads: DownloadResult[];
+    if (this.maskDetectionEnabled && maskRelationships.length > 0) {
+      const maskOptions: MaskDownloadOptions = {
+        ...downloadOptions,
+        enableMasks: true,
+      };
+      const maskResults = await downloadImagesWithMasks(
+        items,
+        maskRelationships,
+        maskOptions
+      );
+      // Convert MaskDownloadResult to DownloadResult
+      downloads = maskResults.map((r) => ({
+        id: r.id,
+        url: r.url,
+        path: r.path,
+        success: r.success,
+        width: r.width,
+        height: r.height,
+        error: r.error,
+      }));
+    } else {
+      // Use regular downloader
+      downloads = await downloadImagesDeduplicated(items, {
+        ...downloadOptions,
+        progress: downloadOptions.progress,
+      });
+    }
 
     const processed: ProcessedImage[] = [];
     const cssLines: string[] = [];

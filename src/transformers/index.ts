@@ -30,6 +30,8 @@ export type {
   SimplifiedComponentSetDefinition,
 } from "./component";
 
+export type { SimplifiedMask, MaskRelationship } from "./mask";
+
 // Keep only Toon format (public API feature)
 export {
   toToon,
