@@ -5,3 +5,5 @@ dist/
 .env
 .claude/figma-outputs
 official-skills-examples
+example-outputs
+mcp-reference-fork-bao

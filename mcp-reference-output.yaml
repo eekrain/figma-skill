@@ -1,0 +1,674 @@
+metadata:
+  name: Profil Seller - Sisi Buyer (Copy)
+  components:
+    '6010:66013':
+      id: '6010:66013'
+      key: 1056cf77e601865a7d14251e448866262d60d48e
+      name: Property 1=Grosir, Troli=Off,Ad=On
+      componentSetId: '6010:65620'
+    '6010:62076':
+      id: '6010:62076'
+      key: 7c62c332d947b37569c1e38d969c3922c4a021ab
+      name: Label = Error, Icon = Tidak Ada
+      componentSetId: '6010:62065'
+    '6001:38396':
+      id: '6001:38396'
+      key: 0dd7f267a71fb5ccc05d6c4c48ca7c5fdfa04fd0
+      name: Icon Name=Star Solid
+      componentSetId: '6001:38066'
+    '6001:38448':
+      id: '6001:38448'
+      key: e2d92927cc84a2395c03add0773a8be4ab35b37d
+      name: Icon Name=map pin solid
+      componentSetId: '6001:38066'
+    '6001:38532':
+      id: '6001:38532'
+      key: c963d386d7571f0d453aa3790f202e4e1aadedb7
+      name: Label = Warning, Icon = Tidak Ada
+      componentSetId: '6001:38507'
+    '6010:65615':
+      id: '6010:65615'
+      key: f4f2bd45b8b6e370bd987d9f3006f8ca1cea4239
+      name: Property 1=wishlist
+      componentSetId: '6010:65612'
+    '6001:32919':
+      id: '6001:32919'
+      key: 487422d3f67a649f08b553f71050e0cda0c5768e
+      name: Icon Name=Heart
+      componentSetId: '6001:32615'
+    '2:482':
+      id: '2:482'
+      key: cae25eb86e3e60ae4c1d306e9c82ffc9bfbc7a9b
+      name: Frame 3
+    '6010:65617':
+      id: '6010:65617'
+      key: 93a4ce2fb9188c96d89f89983adb45e4c8c39a78
+      name: Frame 1171276975
+    '6001:34785':
+      id: '6001:34785'
+      key: 3edf8909cd84eabd371e7ac8e876e2fc9b6413e6
+      name: Property 1=plus
+      componentSetId: '6001:34766'
+  componentSets:
+    '6010:65620':
+      id: '6010:65620'
+      key: 13eb9dc680d9c8982e6799190cacc144b3abb748
+      name: card
+      description: ''
+    '6010:62065':
+      id: '6010:62065'
+      key: e48bbfe8a33d558fdde0c6fed3a5c43a895f5e5b
+      name: Badges - Primary
+      description: ''
+    '6001:38066':
+      id: '6001:38066'
+      key: 7880c6b25970926a44073ef0da7b6f5d1bc928b7
+      name: Icon Grey
+      description: ''
+    '6001:38507':
+      id: '6001:38507'
+      key: a39e2e54e9faa8ab6413db5835fb8941c852cdf7
+      name: Badges - Secondary
+      description: ''
+    '6010:65612':
+      id: '6010:65612'
+      key: 8e6bc2a9465d9f917e18b3640401dafbb3518243
+      name: Wishlist - Domestik
+      description: ''
+    '6001:32615':
+      id: '6001:32615'
+      key: a4a1f12218e6eeb2d0050e38bc63ca74559164d3
+      name: Icon
+      description: ''
+    '6001:34766':
+      id: '6001:34766'
+      key: c15710eccdd997f490cc4cecad113df6db77e8e6
+      name: logo muatparts / buyer
+      description: ''
+nodes:
+  - id: '6010:66371'
+    name: card
+    type: INSTANCE
+    layout: layout_O98DPJ
+    componentId: '6010:66013'
+    componentProperties:
+      - name: Property 1
+        value: Grosir
+        type: VARIANT
+      - name: Troli
+        value: 'Off'
+        type: VARIANT
+      - name: Ad
+        value: 'On'
+        type: VARIANT
+    children:
+      - id: I6010:66371;5:3335
+        name: Frame 1171275818
+        type: FRAME
+        layout: layout_HRI5W2
+        fills: fill_0QT704
+        strokes: Neutral/400
+        strokeWeight: 1px 1px 0px
+        borderRadius: 6px 6px 0px 0px
+        children:
+          - id: I6010:66371;5:3336
+            name: image 3433
+            type: RECTANGLE
+            layout: layout_YHOK7O
+            fills: fill_NL9PLE
+          - id: I6010:66371;5:3339
+            name: Ad
+            type: TEXT
+            layout: layout_9U7P1Q
+            text: Ad
+            textStyle: Bold/Bold - 12
+            fills: Neutral/50
+            effects: effect_ZUQD8J
+      - id: I6010:66371;5:3340
+        name: Frame 1171275817
+        type: FRAME
+        layout: layout_ZE1DB5
+        fills: fill_0QT704
+        strokes: Neutral/400
+        strokeWeight: 0px 1px 1px
+        borderRadius: 0px 0px 6px 6px
+        children:
+          - id: I6010:66371;296:95392
+            name: Frame 1171275823
+            type: FRAME
+            layout: layout_IZJ4NT
+            children:
+              - id: I6010:66371;296:95393
+                name: HONDA
+                type: TEXT
+                layout: layout_WE3CUI
+                text: HONDA
+                textStyle: Medium/Medium - 12
+                fills: Neutral/600
+              - id: I6010:66371;296:95394
+                name: Frame 1171275825
+                type: FRAME
+                layout: layout_PHY4TD
+                children:
+                  - id: I6010:66371;296:95395
+                    name: '12345678901234567890'
+                    type: TEXT
+                    layout: layout_WE3CUI
+                    text: '12345678901234567890'
+                    textStyle: Medium/Medium - 12
+                    fills: Neutral/600
+              - id: I6010:66371;296:95396
+                name: Komponen Mesin Truk Filter Udara Elemen Udara
+                type: TEXT
+                layout: layout_R0ZHWU
+                text: Komponen Mesin Truk Filter Udara Elemen Udara
+                textStyle: Medium/Medium - 14
+                fills: Neutral/900 (P)
+              - id: I6010:66371;296:95397
+                name: Frame 1171275777
+                type: FRAME
+                layout: layout_8JDHMO
+                children:
+                  - id: I6010:66371;296:95399
+                    name: Rp1.000.000.000
+                    type: TEXT
+                    layout: layout_X05O6B
+                    text: Rp1.000.000.000
+                    textStyle: Bold/Bold - 14
+                    fills: Neutral/900 (P)
+              - id: I6010:66371;296:95411
+                name: Frame 1171275821
+                type: FRAME
+                layout: layout_GJLF41
+                children:
+                  - id: I6010:66371;296:95412
+                    name: Icon Grey
+                    type: IMAGE-SVG
+                    layout: layout_GG750J
+                    componentId: '6001:38396'
+                    componentProperties:
+                      - name: Icon Name
+                        value: Star Solid
+                        type: VARIANT
+                  - id: I6010:66371;296:95413
+                    name: 4,9
+                    type: TEXT
+                    layout: layout_X05O6B
+                    text: 4,9
+                    textStyle: Medium/Medium - 12
+                    fills: Neutral/700
+                  - id: I6010:66371;296:95414
+                    name: Ellipse 723
+                    type: ELLIPSE
+                    layout: layout_22L4O8
+                    fills: Neutral/700
+                  - id: I6010:66371;296:95415
+                    name: Terjual 20,9 rb
+                    type: TEXT
+                    layout: layout_X05O6B
+                    text: Terjual 20,9 rb
+                    textStyle: Medium/Medium - 12
+                    fills: Neutral/700
+              - id: I6010:66371;296:95416
+                name: Frame 1171275820
+                type: FRAME
+                layout: layout_GJLF41
+                children:
+                  - id: I6010:66371;296:95417
+                    name: Icon Grey
+                    type: IMAGE-SVG
+                    layout: layout_GG750J
+                    fills: fill_0QT704
+                    componentId: '6001:38448'
+                    componentProperties:
+                      - name: Icon Name
+                        value: map pin solid
+                        type: VARIANT
+                  - id: I6010:66371;296:95418
+                    name: Kota Surabaya
+                    type: TEXT
+                    layout: layout_X05O6B
+                    text: Kota Surabaya
+                    textStyle: Medium/Medium - 12
+                    fills: Neutral/700
+          - id: I6010:66371;296:79183
+            name: Badges - Secondary
+            type: INSTANCE
+            layout: layout_A76U2X
+            fills: Custom Color/Gold Gradient
+            componentId: '6001:38532'
+            componentProperties:
+              - name: Label
+                value: Warning
+                type: VARIANT
+              - name: Icon
+                value: Tidak Ada
+                type: VARIANT
+            children:
+              - id: I6010:66371;296:79183;126:5804
+                name: Label
+                type: TEXT
+                layout: layout_X05O6B
+                text: 'Kualitas : OEM'
+                textStyle: Demi/Demi - 12
+                fills: Custom Color/Red Gradient
+      - id: I6010:66371;5:3374
+        name: Wishlist - Domestik
+        type: IMAGE-SVG
+        layout: layout_B99QX4
+        fills: Neutral/50
+        borderRadius: 48px
+        componentId: '6010:65615'
+        componentProperties:
+          - name: Property 1
+            value: wishlist
+            type: VARIANT
+      - id: I6010:66371;1294:340172
+        name: Frame 1171276976
+        type: IMAGE-SVG
+        layout: layout_8THVYX
+        opacity: 0.6399999856948853
+        componentId: '6010:65617'
+globalVars:
+  styles:
+    layout_O98DPJ:
+      mode: column
+      sizing:
+        horizontal: fixed
+        vertical: hug
+      dimensions:
+        width: 170
+    layout_HRI5W2:
+      mode: column
+      alignSelf: stretch
+      gap: 10px
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 170
+    fill_0QT704:
+      - '#FFFFFF'
+    Neutral/400:
+      - '#C4C4C4'
+    layout_YHOK7O:
+      mode: none
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 170
+    fill_NL9PLE:
+      - type: IMAGE
+        imageRef: c156b9e24fc71aa75e6783064afe234a6e94dff7
+        scaleMode: FILL
+        objectFit: cover
+        isBackground: false
+        imageDownloadArguments:
+          needsCropping: false
+          requiresImageDimensions: false
+    layout_9U7P1Q:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      position: absolute
+      locationRelativeToParent:
+        x: 191
+        'y': 154
+      dimensions:
+        width: 17
+        height: 8
+    Bold/Bold - 12:
+      fontFamily: Avenir Next LT Pro
+      fontWeight: 700
+      fontSize: 12
+      lineHeight: 1.2000000476837158em
+      textAlignHorizontal: LEFT
+      textAlignVertical: CENTER
+    Neutral/50:
+      - '#FFFFFF'
+    effect_ZUQD8J:
+      textShadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.36)
+    layout_ZE1DB5:
+      mode: column
+      alignSelf: stretch
+      gap: 10px
+      padding: 36px 8px 12px
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 212
+    layout_IZJ4NT:
+      mode: column
+      alignSelf: stretch
+      gap: 12px
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 164
+    layout_WE3CUI:
+      mode: none
+      sizing:
+        horizontal: fill
+        vertical: hug
+    Medium/Medium - 12:
+      fontFamily: Avenir Next LT Pro
+      fontWeight: 500
+      fontSize: 12
+      lineHeight: 1.2000000476837158em
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    Neutral/600:
+      - '#7B7B7B'
+    layout_PHY4TD:
+      mode: row
+      justifyContent: stretch
+      alignItems: stretch
+      alignSelf: stretch
+      gap: 4px
+      sizing:
+        horizontal: fill
+        vertical: hug
+    layout_R0ZHWU:
+      mode: none
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 30
+    Medium/Medium - 14:
+      fontFamily: Avenir Next LT Pro
+      fontWeight: 500
+      fontSize: 14
+      lineHeight: 1.2000000817435128em
+      textAlignHorizontal: LEFT
+      textAlignVertical: CENTER
+    Neutral/900 (P):
+      - '#000000'
+    layout_8JDHMO:
+      mode: column
+      alignSelf: stretch
+      gap: 8px
+      sizing:
+        horizontal: fill
+        vertical: hug
+    layout_X05O6B:
+      mode: none
+      sizing:
+        horizontal: hug
+        vertical: hug
+    Bold/Bold - 14:
+      fontFamily: Avenir Next LT Pro
+      fontWeight: 700
+      fontSize: 14
+      lineHeight: 1.2000000817435128em
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    layout_GJLF41:
+      mode: row
+      alignItems: center
+      gap: 4px
+      sizing:
+        horizontal: hug
+        vertical: hug
+    layout_GG750J:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      dimensions:
+        width: 16
+        height: 16
+    layout_ZM9SHC:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 1.66
+        'y': 2
+      dimensions:
+        width: 12.67
+        height: 12.01
+    Secondary/700:
+      - '#FEA010'
+    Neutral/700:
+      - '#555555'
+    layout_22L4O8:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      dimensions:
+        width: 2
+        height: 2
+    layout_99IB4M:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 2.5
+        'y': 1.5
+      dimensions:
+        width: 11
+        height: 13.5
+    Primary/700:
+      - '#176CF7'
+    layout_A76U2X:
+      mode: row
+      alignItems: center
+      gap: 4px
+      padding: 4px 8px
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      position: absolute
+      locationRelativeToParent:
+        x: 0
+        'y': 0
+      dimensions:
+        width: 170
+        height: 24
+    Custom Color/Gold Gradient:
+      - type: GRADIENT_LINEAR
+        gradient: >-
+          linear-gradient(90deg, rgba(210, 154, 0, 1) 0%, rgba(255, 214, 100, 1)
+          35%, rgba(208, 156, 12, 1) 69%, rgba(255, 218, 113, 1) 100%)
+    Demi/Demi - 12:
+      fontFamily: Avenir Next LT Pro
+      fontWeight: 600
+      fontSize: 12
+      lineHeight: 1.2000000476837158em
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    Custom Color/Red Gradient:
+      - type: GRADIENT_LINEAR
+        gradient: >-
+          linear-gradient(19deg, rgba(119, 0, 0, 1) 0%, rgba(191, 8, 8, 1) 40%,
+          rgba(119, 0, 0, 1) 100%)
+    layout_B99QX4:
+      mode: row
+      justifyContent: center
+      alignItems: center
+      gap: 10px
+      padding: 6px
+      sizing:
+        horizontal: hug
+        vertical: hug
+      position: absolute
+      locationRelativeToParent:
+        x: 134
+        'y': 8
+    layout_JRFF2X:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0.67
+        'y': 1.33
+      dimensions:
+        width: 14.67
+        height: 13.33
+    Error/400:
+      - '#EE4343'
+    layout_8THVYX:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      position: absolute
+      locationRelativeToParent:
+        x: 0
+        'y': -0.5
+      dimensions:
+        width: 170
+        height: 170
+    layout_93NKWF:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0
+        'y': 0
+      dimensions:
+        width: 170
+        height: 170
+    fill_BBHUNP:
+      - '#D9D9D9'
+    layout_W7L1KV:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 26.71
+        'y': 73.83
+      dimensions:
+        width: 116.57
+        height: 22.34
+    layout_0P3K2L:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0
+        'y': 2.34
+      dimensions:
+        width: 94.93
+        height: 17.65
+    layout_02WDQ2:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0
+        'y': 0
+      dimensions:
+        width: 94.93
+        height: 17.65
+    layout_NM2ZU3:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0
+        'y': 0
+      dimensions:
+        width: 52.74
+        height: 17.65
+    layout_1BBKBF:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 16.2
+        'y': 0
+      dimensions:
+        width: 17.57
+        height: 17.65
+    Neutral/800:
+      - '#434343'
+    layout_WB1ONW:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0
+        'y': 4.49
+      dimensions:
+        width: 15.31
+        height: 9.61
+    layout_UFD2ZF:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 34.67
+        'y': 4.5
+      dimensions:
+        width: 9.8
+        height: 9.61
+    layout_JQ50NA:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 46.13
+        'y': 1.77
+      dimensions:
+        width: 6.6
+        height: 12.33
+    layout_1XE0AA:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 43.19
+        'y': 4.5
+      dimensions:
+        width: 6.68
+        height: 2.34
+    layout_DM6B0Z:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 20.54
+        'y': 7.34
+      dimensions:
+        width: 8.88
+        height: 6.77
+    layout_NBWF77:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 20.55
+        'y': 4.3
+      dimensions:
+        width: 2.47
+        height: 2.48
+    layout_F9DTCD:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 26.95
+        'y': 4.3
+      dimensions:
+        width: 2.47
+        height: 2.48
+    layout_MNLVFP:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 53.46
+        'y': 2.41
+      dimensions:
+        width: 41.47
+        height: 15.15
+    layout_JH3EV6:
+      mode: row
+      justifyContent: center
+      alignItems: center
+      gap: 4.82935094833374px
+      padding: 1.9317402839660645px
+      sizing:
+        horizontal: hug
+        vertical: hug
+      locationRelativeToParent:
+        x: 96.69
+        'y': 2.34
+    layout_V59AXN:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      dimensions:
+        width: 16.45
+        height: 5.19

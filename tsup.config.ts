@@ -7,6 +7,7 @@ export default defineConfig({
     "src/extractors/index.ts",
     "src/transformers/index.ts",
     "src/streaming/index.ts",
+    "src/compression/index.ts",
   ],
   format: ["esm"],
   dts: true,

@@ -196,6 +196,7 @@ function buildGradientString(
 /**
  * Parse a single paint to simplified format
  * Matches mcp-reference: parsePaint
+ * Phase 4: Returns hex for opaque colors, rgba only for transparency
  */
 export function parsePaint(
   paint: Paint,
@@ -208,7 +209,15 @@ export function parsePaint(
 
   // Solid color
   if (paint.type === "SOLID") {
-    return formatRGBAColor(paint.color, paint.opacity);
+    // Phase 4: Use hex for opaque colors, rgba for transparency (matches Framelink)
+    const opacity = paint.opacity ?? paint.color?.a ?? 1;
+    if (opacity === 1) {
+      // Opaque color - return hex for cleaner output
+      return _figmaToHex(paint.color!);
+    } else {
+      // Transparent color - use rgba
+      return formatRGBAColor(paint.color!, opacity);
+    }
   }
 
   // Gradient types

@@ -258,6 +258,10 @@ export interface GetFileOptions extends TraversalOptions {
   includeComponentSets?: boolean;
   /** Specific node ID to extract (from URL node-id parameter) */
   nodeId?: NodeId;
+  /** Enable component compression for toon format (default: false) */
+  compress?: boolean;
+  /** Compression options when compress is enabled */
+  compressionOptions?: import("../compression/types").CompressionOptions;
 }
 
 /**
@@ -353,15 +357,31 @@ export interface DownloadedImageResult {
 // =====================================================
 
 /**
+ * Style with metadata for semantic naming and LLM-friendly output
+ * Provides semantic name, category, and formatted value
+ */
+export interface StyleWithMetadata {
+  /** The actual style value (layout, textStyle, fills, etc.) */
+  value: StyleTypes;
+  /** Semantic name for LLM understanding (e.g., "Neutral/400", "Primary/700") */
+  semanticName?: string;
+  /** Category for grouping (e.g., "color", "typography", "layout") */
+  category?: "color" | "typography" | "layout" | "effect" | "stroke";
+  /** Original opaque ID (for reference) */
+  originalId?: string;
+}
+
+/**
  * Style types that can be referenced globally
- * Updated in Phase 1 to include expanded fill types
+ * Updated in Phase 2 to support StyleWithMetadata wrapper
  */
 export type StyleTypes =
   | import("../transformers/layout").SimplifiedLayout
   | import("../transformers/text").SimplifiedTextStyle
   | SimplifiedFill[]
   | import("../transformers/style").SimplifiedStrokes
-  | import("../transformers/effects").SimplifiedEffects;
+  | import("../transformers/effects").SimplifiedEffects
+  | StyleWithMetadata;  // NEW: Support metadata wrapper
 
 /**
  * Simplified fill types

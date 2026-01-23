@@ -15,6 +15,16 @@ export type {
   NodeId,
 } from "@/extractors/types";
 
+// Compression types
+export type {
+  CompressionOptions,
+  ComponentDefinition,
+  SlotDefinition,
+  CompressedInstance,
+  LayoutGrid,
+  CompressionStats,
+} from "@/compression/types";
+
 // Re-export Figma API types users commonly need
 export type {
   Node,
@@ -41,7 +51,15 @@ export {
 } from "@/extractors/index";
 
 // Toon format (unique advantage - keep!)
-export { toToon, toToonLines, fromToon } from "@/transformers/toon";
+export { toToon, toToonLines, fromToon, type ToonOptions } from "@/transformers/toon";
+
+// Compression (for advanced users)
+export {
+  compressComponents,
+  expandDesign,
+  analyzeCompressionPotential,
+  createCompressionReport,
+} from "@/compression/index";
 
 // Logger (minimal - users control their own logging)
 export { setLogLevel, getLogLevel } from "@/utils/logger";

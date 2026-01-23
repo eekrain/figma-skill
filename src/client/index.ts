@@ -259,6 +259,7 @@ export class FigmaExtractor {
         document: Node;
         components?: Record<string, Component>;
         componentSets?: Record<string, ComponentSet>;
+        styles?: Record<string, unknown>;  // CRITICAL: Include styles from main file response!
       }>(`/files/${fileKey}`, {
         cacheKey: ["file", fileKey],
       })
@@ -268,8 +269,15 @@ export class FigmaExtractor {
     // Get extractors from options or use default allExtractors
     const extractors = options?.extractors || allExtractors;
 
-    // Fetch style metadata for name resolution
-    const extraStyles = await this.getStyles(fileKey);
+    // CRITICAL FIX: Use styles from main file response instead of separate endpoint
+    // Framelink gets styles from the main file response, not /files/{key}/styles
+    const extraStyles = response.styles ? response.styles as Record<string, { name: string; styleType: string }> : {};
+
+    // DEBUG: Log what we got
+    console.log("[DEBUG] extraStyles from response:", Object.keys(extraStyles).length, "styles");
+    if (Object.keys(extraStyles).length > 0) {
+      console.log("[DEBUG] Sample extraStyles:", Object.entries(extraStyles).slice(0, 3).map(([k, v]) => `${k}: ${v.name}`).join(", "));
+    }
 
     // Apply extraction pipeline - only pass visible children, not the DOCUMENT wrapper
     // Type assertion: response.document is a DocumentNode with children
@@ -313,7 +321,10 @@ export class FigmaExtractor {
 
     // Handle format option
     if (options?.format === "toon") {
-      return toToon(design) as unknown as SimplifiedDesign;
+      return toToon(design, {
+        compress: options?.compress,
+        compressionOptions: options?.compressionOptions,
+      }) as unknown as SimplifiedDesign;
     }
 
     return design;
@@ -330,10 +341,13 @@ export class FigmaExtractor {
     const { fetchPaginatedFile } =
       await import("@/streaming/paginated-fetcher");
 
+    // Fetch style metadata for name resolution (CRITICAL for semantic names)
+    const extraStyles = await this.getStyles(fileKey);
+
     // Create progress emitter
     const progress = new ProgressEmitter();
 
-    // Create async generator
+    // Create async generator with extraStyles for semantic name resolution
     const generator = fetchPaginatedFile(
       fileKey,
       (endpoint) => this.request<Node>(endpoint),
@@ -343,7 +357,8 @@ export class FigmaExtractor {
         nodeFilter: options?.nodeFilter,
         afterChildren: options?.afterChildren,
       },
-      progress
+      progress,
+      extraStyles  // Pass style metadata for semantic name resolution
     );
 
     // Collect all chunks
@@ -370,7 +385,10 @@ export class FigmaExtractor {
 
     // Handle format option
     if (options?.format === "toon") {
-      return toToon(design) as unknown as SimplifiedDesign;
+      return toToon(design, {
+        compress: options?.compress,
+        compressionOptions: options?.compressionOptions,
+      }) as unknown as SimplifiedDesign;
     }
 
     return design;
@@ -399,23 +417,40 @@ export class FigmaExtractor {
 
     info(`Fetching nodes: ${normalizedNodeId}`);
 
-    // Use existing getNodes infrastructure
-    const response = await this.rateLimiter.execute(() =>
-      this.request<{
-        name: string;
-        nodes: Record<string, Node>;
-      }>(`/files/${fileKey}/nodes?ids=${normalizedNodeId}`, {
-        cacheKey: ["nodes", fileKey, normalizedNodeId],
-      })
-    );
+    // CRITICAL FIX: Fetch both nodes AND styles in parallel
+    // Node responses don't include styles - we need to fetch them from the file endpoint
+    const [nodesResponse, stylesData] = await Promise.all([
+      // Fetch the requested nodes
+      this.rateLimiter.execute(() =>
+        this.request<{
+          name: string;
+          nodes: Record<string, Node>;
+        }>(`/files/${fileKey}/nodes?ids=${normalizedNodeId}`, {
+          cacheKey: ["nodes", fileKey, normalizedNodeId],
+        })
+      ),
+      // Fetch file metadata including styles (lightweight request)
+      this.rateLimiter.execute(() =>
+        this.request<{
+          styles?: Record<string, unknown>;
+        }>(`/files/${fileKey}`, {
+          cacheKey: ["file", fileKey],
+        })
+      ).catch(() => ({ styles: undefined }))  // If styles fetch fails, continue without them
+    ]);
 
-    // Fetch style metadata for name resolution
-    const extraStyles = await this.getStyles(fileKey);
+    // CRITICAL: Use styles from the file response
+    const extraStyles = stylesData.styles ? stylesData.styles as Record<string, { name: string; styleType: string }> : {};
+
+    console.log(`[DEBUG] extraStyles from file response: ${Object.keys(extraStyles).length} styles`);
+    if (Object.keys(extraStyles).length > 0) {
+      console.log(`[DEBUG] Sample extraStyles:`, Object.entries(extraStyles).slice(0, 3).map(([k, v]) => `${k}: ${(v as any).name}`).join(", "));
+    }
 
     const extractors = options.extractors || allExtractors;
     // Extract document from each node response and filter for visibility
     // Type assertion: each node response has a document property
-    const visibleNodes = Object.values(response.nodes)
+    const visibleNodes = Object.values(nodesResponse.nodes)
       .map((n) => (n as unknown as { document: Node }).document)
       .filter((n) => n.visible !== false);
     const { nodes, globalVars } = extractFromDesign(
@@ -430,7 +465,7 @@ export class FigmaExtractor {
     );
 
     const design: SimplifiedDesign = {
-      name: response.name,
+      name: nodesResponse.name,
       nodes,
       components: {}, // Node-specific fetch doesn't include components
       componentSets: {},
@@ -438,7 +473,10 @@ export class FigmaExtractor {
     };
 
     if (options?.format === "toon") {
-      return toToon(design) as unknown as SimplifiedDesign;
+      return toToon(design, {
+        compress: options?.compress,
+        compressionOptions: options?.compressionOptions,
+      }) as unknown as SimplifiedDesign;
     }
 
     return design;
@@ -459,19 +497,33 @@ export class FigmaExtractor {
    *   console.log(line);
    * }
    * ```
+   *
+   * @example
+   * // With compression
+   * const stream = await client.getFileStream('fileKey', { compress: true });
+   * for await (const line of stream) {
+   *   console.log(line);
+   * }
+   * ```
    */
   async getFileStream(
     fileKey: string,
     options?: Omit<GetFileOptions, "format">
   ): Promise<AsyncIterable<string>> {
-    info(`Streaming file as Toon: ${fileKey}`, { nodeId: options?.nodeId });
+    info(`Streaming file as Toon: ${fileKey}`, {
+      nodeId: options?.nodeId,
+      compress: options?.compress,
+    });
 
     // Get the design (JSON format)
     const design = await this.getFile(fileKey, { ...options, format: "json" });
 
     // Convert to Toon lines for streaming
     // Type assertion: we know format: 'json' returns SimplifiedDesign
-    const toonLines = toToonLines(design as SimplifiedDesign);
+    const toonLines = toToonLines(design as SimplifiedDesign, {
+      compress: options?.compress,
+      compressionOptions: options?.compressionOptions,
+    });
 
     // Return as async iterable
     return (async function* () {
@@ -511,22 +563,39 @@ export class FigmaExtractor {
     info(`Fetching nodes for file: ${fileKey}`, { ids: options.ids });
 
     const ids = options.ids.join(",");
-    const response = await this.rateLimiter.execute(() =>
-      this.request<{
-        name: string;
-        nodes: Record<string, Node>;
-      }>(`/files/${fileKey}/nodes?ids=${ids}`, {
-        cacheKey: ["nodes", fileKey, ids],
-      })
-    );
+
+    // CRITICAL FIX: Fetch both nodes AND styles in parallel
+    // Node responses don't include styles - we need to fetch them from the file endpoint
+    const [nodesResponse, stylesData] = await Promise.all([
+      // Fetch the requested nodes
+      this.rateLimiter.execute(() =>
+        this.request<{
+          name: string;
+          nodes: Record<string, Node>;
+        }>(`/files/${fileKey}/nodes?ids=${ids}`, {
+          cacheKey: ["nodes", fileKey, ids],
+        })
+      ),
+      // Fetch file metadata including styles (lightweight request)
+      this.rateLimiter.execute(() =>
+        this.request<{
+          styles?: Record<string, unknown>;
+        }>(`/files/${fileKey}`, {
+          cacheKey: ["file", fileKey],
+        })
+      ).catch(() => ({ styles: undefined }))  // If styles fetch fails, continue without them
+    ]);
 
     // Get extractors from options or use default allExtractors
     const extractors = options.extractors || allExtractors;
 
+    // CRITICAL FIX: Use styles from the file response
+    const extraStyles = stylesData.styles ? stylesData.styles as Record<string, { name: string; styleType: string }> : {};
+
     // Apply extraction pipeline to all fetched nodes
     // Extract document from each node response and filter for visibility
     // Type assertion: each node response has a document property
-    const visibleNodes = Object.values(response.nodes)
+    const visibleNodes = Object.values(nodesResponse.nodes)
       .map((n) => (n as unknown as { document: Node }).document)
       .filter((n) => n.visible !== false);
     const { nodes, globalVars } = extractFromDesign(
@@ -537,11 +606,11 @@ export class FigmaExtractor {
         nodeFilter: options.nodeFilter,
         afterChildren: options.afterChildren,
       },
-      { styles: {} }
+      { styles: {}, extraStyles }  // Pass through extraStyles for semantic names
     );
 
     return {
-      name: response.name,
+      name: nodesResponse.name,
       nodes,
       components: {},
       componentSets: {},

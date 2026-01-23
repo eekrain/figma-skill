@@ -183,13 +183,15 @@ function estimateTotalNodes(topLevelNodes: Node[]): number {
  * @param request - Fetch function for API requests
  * @param config - Streaming configuration
  * @param progress - Progress emitter for tracking
+ * @param extraStyles - Optional style metadata from Figma API for semantic name resolution
  * @returns Async generator of chunks with final result
  */
 export async function* fetchPaginatedFile(
   fileKey: string,
   request: NodeFetcher,
   config: FileStreamConfig,
-  progress: ProgressEmitter
+  progress: ProgressEmitter,
+  extraStyles?: Record<string, unknown>  // NEW: Style metadata for semantic names
 ): AsyncGenerator<StreamChunk, FileStreamResult, unknown> {
   const extractors = config.extractors || [];
   const batchSize = DEFAULT_BATCH_SIZE;
@@ -251,7 +253,7 @@ export async function* fetchPaginatedFile(
           nodeFilter: config.nodeFilter,
           afterChildren: config.afterChildren,
         },
-        { styles: {} }
+        { styles: {}, extraStyles }  // Pass through extraStyles for semantic names
       );
 
       yield {
@@ -276,7 +278,7 @@ export async function* fetchPaginatedFile(
       nodeFilter: config.nodeFilter,
       afterChildren: config.afterChildren,
     },
-    { styles: {} }
+    { styles: {}, extraStyles }  // Pass through extraStyles for semantic names
   );
 
   progress.complete();
