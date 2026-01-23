@@ -1,105 +1,105 @@
 metadata:
   name: Profil Seller - Sisi Buyer (Copy)
   components:
-    '6010:66013':
-      id: '6010:66013'
+    "6010:66013":
+      id: "6010:66013"
       key: 1056cf77e601865a7d14251e448866262d60d48e
       name: Property 1=Grosir, Troli=Off,Ad=On
-      componentSetId: '6010:65620'
-    '6010:62076':
-      id: '6010:62076'
+      componentSetId: "6010:65620"
+    "6010:62076":
+      id: "6010:62076"
       key: 7c62c332d947b37569c1e38d969c3922c4a021ab
       name: Label = Error, Icon = Tidak Ada
-      componentSetId: '6010:62065'
-    '6001:38396':
-      id: '6001:38396'
+      componentSetId: "6010:62065"
+    "6001:38396":
+      id: "6001:38396"
       key: 0dd7f267a71fb5ccc05d6c4c48ca7c5fdfa04fd0
       name: Icon Name=Star Solid
-      componentSetId: '6001:38066'
-    '6001:38448':
-      id: '6001:38448'
+      componentSetId: "6001:38066"
+    "6001:38448":
+      id: "6001:38448"
       key: e2d92927cc84a2395c03add0773a8be4ab35b37d
       name: Icon Name=map pin solid
-      componentSetId: '6001:38066'
-    '6001:38532':
-      id: '6001:38532'
+      componentSetId: "6001:38066"
+    "6001:38532":
+      id: "6001:38532"
       key: c963d386d7571f0d453aa3790f202e4e1aadedb7
       name: Label = Warning, Icon = Tidak Ada
-      componentSetId: '6001:38507'
-    '6010:65615':
-      id: '6010:65615'
+      componentSetId: "6001:38507"
+    "6010:65615":
+      id: "6010:65615"
       key: f4f2bd45b8b6e370bd987d9f3006f8ca1cea4239
       name: Property 1=wishlist
-      componentSetId: '6010:65612'
-    '6001:32919':
-      id: '6001:32919'
+      componentSetId: "6010:65612"
+    "6001:32919":
+      id: "6001:32919"
       key: 487422d3f67a649f08b553f71050e0cda0c5768e
       name: Icon Name=Heart
-      componentSetId: '6001:32615'
-    '2:482':
-      id: '2:482'
+      componentSetId: "6001:32615"
+    "2:482":
+      id: "2:482"
       key: cae25eb86e3e60ae4c1d306e9c82ffc9bfbc7a9b
       name: Frame 3
-    '6010:65617':
-      id: '6010:65617'
+    "6010:65617":
+      id: "6010:65617"
       key: 93a4ce2fb9188c96d89f89983adb45e4c8c39a78
       name: Frame 1171276975
-    '6001:34785':
-      id: '6001:34785'
+    "6001:34785":
+      id: "6001:34785"
       key: 3edf8909cd84eabd371e7ac8e876e2fc9b6413e6
       name: Property 1=plus
-      componentSetId: '6001:34766'
+      componentSetId: "6001:34766"
   componentSets:
-    '6010:65620':
-      id: '6010:65620'
+    "6010:65620":
+      id: "6010:65620"
       key: 13eb9dc680d9c8982e6799190cacc144b3abb748
       name: card
-      description: ''
-    '6010:62065':
-      id: '6010:62065'
+      description: ""
+    "6010:62065":
+      id: "6010:62065"
       key: e48bbfe8a33d558fdde0c6fed3a5c43a895f5e5b
       name: Badges - Primary
-      description: ''
-    '6001:38066':
-      id: '6001:38066'
+      description: ""
+    "6001:38066":
+      id: "6001:38066"
       key: 7880c6b25970926a44073ef0da7b6f5d1bc928b7
       name: Icon Grey
-      description: ''
-    '6001:38507':
-      id: '6001:38507'
+      description: ""
+    "6001:38507":
+      id: "6001:38507"
       key: a39e2e54e9faa8ab6413db5835fb8941c852cdf7
       name: Badges - Secondary
-      description: ''
-    '6010:65612':
-      id: '6010:65612'
+      description: ""
+    "6010:65612":
+      id: "6010:65612"
       key: 8e6bc2a9465d9f917e18b3640401dafbb3518243
       name: Wishlist - Domestik
-      description: ''
-    '6001:32615':
-      id: '6001:32615'
+      description: ""
+    "6001:32615":
+      id: "6001:32615"
       key: a4a1f12218e6eeb2d0050e38bc63ca74559164d3
       name: Icon
-      description: ''
-    '6001:34766':
-      id: '6001:34766'
+      description: ""
+    "6001:34766":
+      id: "6001:34766"
       key: c15710eccdd997f490cc4cecad113df6db77e8e6
       name: logo muatparts / buyer
-      description: ''
+      description: ""
 nodes:
-  - id: '6010:66371'
+  - id: "6010:66371"
     name: card
     type: INSTANCE
     layout: layout_O98DPJ
-    componentId: '6010:66013'
+    componentId: "6010:66013"
     componentProperties:
       - name: Property 1
         value: Grosir
         type: VARIANT
       - name: Troli
-        value: 'Off'
+        value: "Off"
         type: VARIANT
       - name: Ad
-        value: 'On'
+        value: "On"
         type: VARIANT
     children:
       - id: I6010:66371;5:3335
@@ -151,10 +151,10 @@ nodes:
                 layout: layout_PHY4TD
                 children:
                   - id: I6010:66371;296:95395
-                    name: '12345678901234567890'
+                    name: "12345678901234567890"
                     type: TEXT
                     layout: layout_WE3CUI
-                    text: '12345678901234567890'
+                    text: "12345678901234567890"
                     textStyle: Medium/Medium - 12
                     fills: Neutral/600
               - id: I6010:66371;296:95396
@@ -185,7 +185,7 @@ nodes:
                     name: Icon Grey
                     type: IMAGE-SVG
                     layout: layout_GG750J
-                    componentId: '6001:38396'
+                    componentId: "6001:38396"
                     componentProperties:
                       - name: Icon Name
                         value: Star Solid
@@ -219,7 +219,7 @@ nodes:
                     type: IMAGE-SVG
                     layout: layout_GG750J
                     fills: fill_0QT704
-                    componentId: '6001:38448'
+                    componentId: "6001:38448"
                     componentProperties:
                       - name: Icon Name
                         value: map pin solid
@@ -236,7 +236,7 @@ nodes:
             type: INSTANCE
             layout: layout_A76U2X
             fills: Custom Color/Gold Gradient
-            componentId: '6001:38532'
+            componentId: "6001:38532"
             componentProperties:
               - name: Label
                 value: Warning
@@ -249,7 +249,7 @@ nodes:
                 name: Label
                 type: TEXT
                 layout: layout_X05O6B
-                text: 'Kualitas : OEM'
+                text: "Kualitas : OEM"
                 textStyle: Demi/Demi - 12
                 fills: Custom Color/Red Gradient
       - id: I6010:66371;5:3374
@@ -258,7 +258,7 @@ nodes:
         layout: layout_B99QX4
         fills: Neutral/50
         borderRadius: 48px
-        componentId: '6010:65615'
+        componentId: "6010:65615"
         componentProperties:
           - name: Property 1
             value: wishlist
@@ -268,7 +268,7 @@ nodes:
         type: IMAGE-SVG
         layout: layout_8THVYX
         opacity: 0.6399999856948853
-        componentId: '6010:65617'
+        componentId: "6010:65617"
 globalVars:
   styles:
     layout_O98DPJ:
@@ -288,9 +288,9 @@ globalVars:
       dimensions:
         height: 170
     fill_0QT704:
-      - '#FFFFFF'
+      - "#FFFFFF"
     Neutral/400:
-      - '#C4C4C4'
+      - "#C4C4C4"
     layout_YHOK7O:
       mode: none
       sizing:
@@ -315,7 +315,7 @@ globalVars:
       position: absolute
       locationRelativeToParent:
         x: 191
-        'y': 154
+        "y": 154
       dimensions:
         width: 17
         height: 8
@@ -327,7 +327,7 @@ globalVars:
       textAlignHorizontal: LEFT
       textAlignVertical: CENTER
     Neutral/50:
-      - '#FFFFFF'
+      - "#FFFFFF"
     effect_ZUQD8J:
       textShadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.36)
     layout_ZE1DB5:
@@ -362,7 +362,7 @@ globalVars:
       textAlignHorizontal: LEFT
       textAlignVertical: TOP
     Neutral/600:
-      - '#7B7B7B'
+      - "#7B7B7B"
     layout_PHY4TD:
       mode: row
       justifyContent: stretch
@@ -387,7 +387,7 @@ globalVars:
       textAlignHorizontal: LEFT
       textAlignVertical: CENTER
     Neutral/900 (P):
-      - '#000000'
+      - "#000000"
     layout_8JDHMO:
       mode: column
       alignSelf: stretch
@@ -427,14 +427,14 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 1.66
-        'y': 2
+        "y": 2
       dimensions:
         width: 12.67
         height: 12.01
     Secondary/700:
-      - '#FEA010'
+      - "#FEA010"
     Neutral/700:
-      - '#555555'
+      - "#555555"
     layout_22L4O8:
       mode: none
       sizing:
@@ -448,12 +448,12 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 2.5
-        'y': 1.5
+        "y": 1.5
       dimensions:
         width: 11
         height: 13.5
     Primary/700:
-      - '#176CF7'
+      - "#176CF7"
     layout_A76U2X:
       mode: row
       alignItems: center
@@ -465,7 +465,7 @@ globalVars:
       position: absolute
       locationRelativeToParent:
         x: 0
-        'y': 0
+        "y": 0
       dimensions:
         width: 170
         height: 24
@@ -498,18 +498,18 @@ globalVars:
       position: absolute
       locationRelativeToParent:
         x: 134
-        'y': 8
+        "y": 8
     layout_JRFF2X:
       mode: none
       sizing: {}
       locationRelativeToParent:
         x: 0.67
-        'y': 1.33
+        "y": 1.33
       dimensions:
         width: 14.67
         height: 13.33
     Error/400:
-      - '#EE4343'
+      - "#EE4343"
     layout_8THVYX:
       mode: none
       sizing:
@@ -518,7 +518,7 @@ globalVars:
       position: absolute
       locationRelativeToParent:
         x: 0
-        'y': -0.5
+        "y": -0.5
       dimensions:
         width: 170
         height: 170
@@ -527,18 +527,18 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 0
-        'y': 0
+        "y": 0
       dimensions:
         width: 170
         height: 170
     fill_BBHUNP:
-      - '#D9D9D9'
+      - "#D9D9D9"
     layout_W7L1KV:
       mode: none
       sizing: {}
       locationRelativeToParent:
         x: 26.71
-        'y': 73.83
+        "y": 73.83
       dimensions:
         width: 116.57
         height: 22.34
@@ -547,7 +547,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 0
-        'y': 2.34
+        "y": 2.34
       dimensions:
         width: 94.93
         height: 17.65
@@ -556,7 +556,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 0
-        'y': 0
+        "y": 0
       dimensions:
         width: 94.93
         height: 17.65
@@ -565,7 +565,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 0
-        'y': 0
+        "y": 0
       dimensions:
         width: 52.74
         height: 17.65
@@ -574,18 +574,18 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 16.2
-        'y': 0
+        "y": 0
       dimensions:
         width: 17.57
         height: 17.65
     Neutral/800:
-      - '#434343'
+      - "#434343"
     layout_WB1ONW:
       mode: none
       sizing: {}
       locationRelativeToParent:
         x: 0
-        'y': 4.49
+        "y": 4.49
       dimensions:
         width: 15.31
         height: 9.61
@@ -594,7 +594,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 34.67
-        'y': 4.5
+        "y": 4.5
       dimensions:
         width: 9.8
         height: 9.61
@@ -603,7 +603,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 46.13
-        'y': 1.77
+        "y": 1.77
       dimensions:
         width: 6.6
         height: 12.33
@@ -612,7 +612,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 43.19
-        'y': 4.5
+        "y": 4.5
       dimensions:
         width: 6.68
         height: 2.34
@@ -621,7 +621,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 20.54
-        'y': 7.34
+        "y": 7.34
       dimensions:
         width: 8.88
         height: 6.77
@@ -630,7 +630,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 20.55
-        'y': 4.3
+        "y": 4.3
       dimensions:
         width: 2.47
         height: 2.48
@@ -639,7 +639,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 26.95
-        'y': 4.3
+        "y": 4.3
       dimensions:
         width: 2.47
         height: 2.48
@@ -648,7 +648,7 @@ globalVars:
       sizing: {}
       locationRelativeToParent:
         x: 53.46
-        'y': 2.41
+        "y": 2.41
       dimensions:
         width: 41.47
         height: 15.15
@@ -663,7 +663,7 @@ globalVars:
         vertical: hug
       locationRelativeToParent:
         x: 96.69
-        'y': 2.34
+        "y": 2.34
     layout_V59AXN:
       mode: none
       sizing:

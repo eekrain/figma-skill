@@ -11,9 +11,10 @@
  * component-based compression to reduce file size by 70-75%.
  */
 import { decode, encode, encodeLines } from "@toon-format/toon";
-import type { SimplifiedDesign } from "@/extractors/types";
-import type { CompressionOptions } from "@/compression/types";
+
 import { compressComponents, expandDesign } from "@/compression";
+import type { CompressionOptions } from "@/compression/types";
+import type { SimplifiedDesign } from "@/extractors/types";
 
 /**
  * Toon encode options matching the plan specification
@@ -139,14 +140,19 @@ export function fromToon(
   toon: string,
   options?: { autoExpand?: boolean }
 ): SimplifiedDesign {
-  const decoded = decode(toon, TOON_DECODE_OPTIONS) as unknown as SimplifiedDesign;
+  const decoded = decode(
+    toon,
+    TOON_DECODE_OPTIONS
+  ) as unknown as SimplifiedDesign;
 
   // Check if this is a compressed format
   const isCompressed = "components" in decoded && "instances" in decoded;
 
   if (isCompressed && options?.autoExpand !== false) {
     // Auto-expand compressed format
-    return expandDesign(decoded as unknown as import("../compression/types").SerializableCompressedDesign);
+    return expandDesign(
+      decoded as unknown as import("../compression/types").SerializableCompressedDesign
+    );
   }
 
   return decoded;

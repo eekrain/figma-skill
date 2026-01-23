@@ -29,6 +29,24 @@
     "./compression": {
       "types": "./dist/compression/index.d.ts",
       "import": "./dist/compression/index.js"
+    },
+    "/tokens*": "./dist/tokens/*.js",
+    "/transform*": "./dist/transform/*.js",
+    "./analysis": {
+      "types": "./dist/analysis/index.d.ts",
+      "import": "./dist/analysis/index.js"
+    },
+    "./export": {
+      "types": "./dist/export/index.d.ts",
+      "import": "./dist/export/index.js"
+    },
+    "./images": {
+      "types": "./dist/images/index.d.ts",
+      "import": "./dist/images/index.js"
+    },
+    "./docs": {
+      "types": "./dist/docs/index.d.ts",
+      "import": "./dist/docs/index.js"
     }
   },
   "files": [

@@ -106,8 +106,7 @@ describe("streamFile", () => {
     it("should return final result", async () => {
       const nodes = createMockNodes(5);
       const chunks: StreamChunk[] = [];
-      let finalResult: IteratorResult<StreamChunk, FileStreamResult> | null =
-        null;
+      let finalResult: FileStreamResult | null = null;
 
       const generator = streamFile(
         nodes,
@@ -116,20 +115,19 @@ describe("streamFile", () => {
         mockProgress
       );
 
-      for await (const chunk of generator) {
-        chunks.push(chunk);
+      // Manual iteration to capture return value
+      let result = await generator.next();
+      while (!result.done) {
+        chunks.push(result.value);
+        result = await generator.next();
       }
+      finalResult = result.value as FileStreamResult;
 
-      finalResult = await generator.next();
-
-      expect(finalResult.done).toBe(true);
-      expect(finalResult.value).toBeDefined();
-      if (finalResult.done) {
-        expect((finalResult.value as FileStreamResult).nodes).toBeDefined();
-        expect((finalResult.value as FileStreamResult).name).toBe(
-          "streamed-file"
-        );
-      }
+      expect(chunks).toHaveLength(3); // 5 nodes with chunkSize 2 = 3 chunks
+      expect(finalResult).toBeDefined();
+      expect(finalResult.nodes).toBeDefined();
+      expect(finalResult.name).toBe("streamed-file");
+      expect(finalResult.totalChunks).toBe(3);
     });
   });
 
@@ -416,6 +414,7 @@ describe("streamFile", () => {
     it("should include components when requested", async () => {
       const nodes = createMockNodes(3);
       const chunks: StreamChunk[] = [];
+      let finalResult: FileStreamResult | null = null;
 
       const generator = streamFile(
         nodes,
@@ -424,18 +423,22 @@ describe("streamFile", () => {
         mockProgress
       );
 
-      for await (const chunk of generator) {
-        chunks.push(chunk);
+      // Manual iteration to capture return value
+      let result = await generator.next();
+      while (!result.done) {
+        chunks.push(result.value);
+        result = await generator.next();
       }
+      finalResult = result.value as FileStreamResult;
 
-      const result = await generator.next();
-      expect(result.done).toBe(true);
-      expect((result.value as FileStreamResult).components).toBeDefined();
+      expect(finalResult).toBeDefined();
+      expect(finalResult.components).toBeDefined();
     });
 
     it("should include component sets when requested", async () => {
       const nodes = createMockNodes(3);
       const chunks: StreamChunk[] = [];
+      let finalResult: FileStreamResult | null = null;
 
       const generator = streamFile(
         nodes,
@@ -444,13 +447,16 @@ describe("streamFile", () => {
         mockProgress
       );
 
-      for await (const chunk of generator) {
-        chunks.push(chunk);
+      // Manual iteration to capture return value
+      let result = await generator.next();
+      while (!result.done) {
+        chunks.push(result.value);
+        result = await generator.next();
       }
+      finalResult = result.value as FileStreamResult;
 
-      const result = await generator.next();
-      expect(result.done).toBe(true);
-      expect((result.value as FileStreamResult).componentSets).toBeDefined();
+      expect(finalResult).toBeDefined();
+      expect(finalResult.componentSets).toBeDefined();
     });
   });
 });

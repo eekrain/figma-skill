@@ -6,20 +6,17 @@
  * 2. Applies overrides to slots
  * 3. Combines with non-component nodes
  */
+import type { SimplifiedDesign, SimplifiedNode } from "@/extractors/types";
 
-import type {
-  SimplifiedNode,
-  SimplifiedDesign,
-} from "@/extractors/types";
-import type {
-  SerializableCompressedDesign,
-  SerializableComponentDefinition,
-  CompressedInstance,
-  ComponentDefinition,
-  SlotDefinition,
-  MinimalTemplateNode,
-} from "./types";
 import { applyOverrides } from "./slot-detector";
+import type {
+  ComponentDefinition,
+  CompressedInstance,
+  MinimalTemplateNode,
+  SerializableComponentDefinition,
+  SerializableCompressedDesign,
+  SlotDefinition,
+} from "./types";
 
 /**
  * Expands a compressed design back to full SimplifiedDesign
@@ -83,7 +80,9 @@ function expandInstance(
     type: component.type,
     visible: instance.visible ?? true,
     componentId: instance.componentId,
-    children: Array.isArray(expanded) ? expanded as SimplifiedNode[] : [expanded as SimplifiedNode],
+    children: Array.isArray(expanded)
+      ? (expanded as SimplifiedNode[])
+      : [expanded as SimplifiedNode],
   };
 
   // Apply layout data if present
@@ -117,20 +116,23 @@ function expandMinimalTemplate(
     id: template.id,
     name: template.name,
     type: template.type,
-    visible: typeof template.visible === 'object' && template.visible !== null && '$slot' in template.visible
-      ? true  // Will be resolved from slot
-      : (template.visible ?? true),
+    visible:
+      typeof template.visible === "object" &&
+      template.visible !== null &&
+      "$slot" in template.visible
+        ? true // Will be resolved from slot
+        : (template.visible ?? true),
   };
 
   // Handle component references - preserve without expansion
   if (template.componentId) {
     (node as any).componentId = template.componentId;
-    return node;  // Will be expanded separately if needed
+    return node; // Will be expanded separately if needed
   }
 
   // Phase 2: Resolve structured slot references { $slot: "slot_id" } → actual value
   const resolveValue = (val: unknown): unknown => {
-    if (val && typeof val === 'object' && '$slot' in val) {
+    if (val && typeof val === "object" && "$slot" in val) {
       const slotRef = val as { $slot: string };
       return overrides[slotRef.$slot];
     }
@@ -138,7 +140,7 @@ function expandMinimalTemplate(
   };
 
   // Copy properties, resolving slot references
-  for (const key of ['text', 'fills', 'strokes', 'opacity', 'visible']) {
+  for (const key of ["text", "fills", "strokes", "opacity", "visible"]) {
     if ((template as any)[key] !== undefined) {
       (node as any)[key] = resolveValue((template as any)[key]);
     }
@@ -193,7 +195,7 @@ function deserializeComponentDefinition(
     name: def.name,
     type: def.type,
     componentProperties: def.componentProperties,
-    template: def.template,  // Use template instead of children
+    template: def.template, // Use template instead of children
     slotIds: def.slotIds,
     slots: recordToMap(def.slots, (slot) => slot),
   };

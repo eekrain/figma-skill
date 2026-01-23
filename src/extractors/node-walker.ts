@@ -30,7 +30,7 @@ export function extractFromDesign(
     globalVars,
     currentDepth: 0,
     maxDepth: options.maxDepth ?? Number.POSITIVE_INFINITY,
-    extraStyles: globalVars.extraStyles ?? {},  // CRITICAL: Pass through extraStyles from API
+    extraStyles: globalVars.extraStyles ?? {}, // CRITICAL: Pass through extraStyles from API
   };
 
   const processedNodes = nodes

@@ -6,7 +6,6 @@
  * 2. Detects regular spacing patterns
  * 3. Generates grid definitions for layout
  */
-
 import type { CompressedInstance, LayoutGrid } from "./types";
 
 /**
@@ -85,9 +84,7 @@ function tryDetectRowGrid(
   // Check if all y positions are similar
   const yPositions = instances.map((i) => i.layoutData!.y);
   const avgY = yPositions.reduce((a, b) => a + b, 0) / yPositions.length;
-  const yVariance = Math.max(
-    ...yPositions.map((y) => Math.abs(y - avgY))
-  );
+  const yVariance = Math.max(...yPositions.map((y) => Math.abs(y - avgY)));
 
   if (yVariance > tolerance) {
     return { grid: null, confidence: 0 };
@@ -143,9 +140,7 @@ function tryDetectColumnGrid(
   // Check if all x positions are similar
   const xPositions = instances.map((i) => i.layoutData!.x);
   const avgX = xPositions.reduce((a, b) => a + b, 0) / xPositions.length;
-  const xVariance = Math.max(
-    ...xPositions.map((x) => Math.abs(x - avgX))
-  );
+  const xVariance = Math.max(...xPositions.map((x) => Math.abs(x - avgX)));
 
   if (xVariance > tolerance) {
     return { grid: null, confidence: 0 };
@@ -201,8 +196,7 @@ function tryDetectMatrixGrid(
   // Sort by y, then x
   const sorted = [...instances].sort(
     (a, b) =>
-      a.layoutData!.y - b.layoutData!.y ||
-      a.layoutData!.x - b.layoutData!.x
+      a.layoutData!.y - b.layoutData!.y || a.layoutData!.x - b.layoutData!.x
   );
 
   // Try to determine number of columns
@@ -224,11 +218,9 @@ function tryDetectMatrixGrid(
 
   // Calculate spacing
   const avgWidth =
-    firstRow.reduce((sum, i) => sum + i.layoutData!.width, 0) /
-    firstRow.length;
+    firstRow.reduce((sum, i) => sum + i.layoutData!.width, 0) / firstRow.length;
   const avgHeight =
-    sorted.reduce((sum, i) => sum + i.layoutData!.height, 0) /
-    sorted.length;
+    sorted.reduce((sum, i) => sum + i.layoutData!.height, 0) / sorted.length;
 
   // Estimate gaps
   const gapX =
@@ -263,11 +255,9 @@ function tryDetectMatrixGrid(
     const expectedCol = i % columns;
 
     const expectedX =
-      firstRow[0].layoutData!.x +
-      expectedCol * (avgWidth + gapX);
+      firstRow[0].layoutData!.x + expectedCol * (avgWidth + gapX);
     const expectedY =
-      sorted[0].layoutData!.y +
-      expectedRow * (avgHeight + gapY);
+      sorted[0].layoutData!.y + expectedRow * (avgHeight + gapY);
 
     const actualX = sorted[i].layoutData!.x;
     const actualY = sorted[i].layoutData!.y;
@@ -327,12 +317,16 @@ export function gridToCSS(grid: LayoutGrid): string {
 
   lines.push(`.${grid.id.replace(/[^a-z0-9]/gi, "_")} {`);
   lines.push("  display: grid;");
-  lines.push(`  grid-template-columns: repeat(${grid.columns}, ${
-    grid.columnWidth ? `${grid.columnWidth}px` : "1fr"
-  });`);
-  lines.push(`  grid-template-rows: repeat(${grid.rows}, ${
-    grid.rowHeight ? `${grid.rowHeight}px` : "auto"
-  });`);
+  lines.push(
+    `  grid-template-columns: repeat(${grid.columns}, ${
+      grid.columnWidth ? `${grid.columnWidth}px` : "1fr"
+    });`
+  );
+  lines.push(
+    `  grid-template-rows: repeat(${grid.rows}, ${
+      grid.rowHeight ? `${grid.rowHeight}px` : "auto"
+    });`
+  );
   if (grid.gapX && grid.gapY) {
     lines.push(`  gap: ${grid.gapY}px ${grid.gapX}px;`);
   } else if (grid.gapX) {

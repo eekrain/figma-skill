@@ -108,6 +108,8 @@ export interface SimplifiedDesign {
   componentSets: Record<string, SimplifiedComponentSetDefinition>;
   /** Global variables */
   globalVars: GlobalVars;
+  /** Merged variables (Phase 5) - null if unavailable */
+  variables?: import("../client/variable-types").MergedVariables | null;
 }
 
 // =====================================================
@@ -258,6 +260,8 @@ export interface GetFileOptions extends TraversalOptions {
   includeComponentSets?: boolean;
   /** Specific node ID to extract (from URL node-id parameter) */
   nodeId?: NodeId;
+  /** Multiple node IDs to extract (auto-batched, returns array) */
+  nodeIds?: NodeId[];
   /** Enable component compression for toon format (default: false) */
   compress?: boolean;
   /** Compression options when compress is enabled */
@@ -381,7 +385,7 @@ export type StyleTypes =
   | SimplifiedFill[]
   | import("../transformers/style").SimplifiedStrokes
   | import("../transformers/effects").SimplifiedEffects
-  | StyleWithMetadata;  // NEW: Support metadata wrapper
+  | StyleWithMetadata; // NEW: Support metadata wrapper
 
 /**
  * Simplified fill types

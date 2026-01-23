@@ -84,10 +84,15 @@ export async function downloadImages(
 
   const results: DownloadResult[] = [];
   const executing: Promise<void>[] = [];
+  let index = 0;
 
-  // Process queue with controlled parallelism
-  for (const item of queue) {
-    // Create download promise
+  // Process queue with controlled parallelism using proper p-limit pattern
+  function enqueueNext(): Promise<void> | undefined {
+    if (index >= queue.length) {
+      return; // No more items to enqueue
+    }
+
+    const item = queue[index++];
     const promise = downloadSingle(item, timeout)
       .then((result) => {
         results.push(result);
@@ -106,20 +111,28 @@ export async function downloadImages(
         if (progress) {
           progress.increment();
         }
+      })
+      .then(() => {
+        // Remove self from executing array
+        const idx = executing.indexOf(promise as Promise<void>);
+        if (idx > -1) {
+          executing.splice(idx, 1);
+        }
+        // Start next item
+        return enqueueNext();
       });
 
     executing.push(promise);
-
-    // Wait if we've reached max parallel
-    if (executing.length >= maxParallel) {
-      await Promise.race(executing);
-      // Remove one completed promise (we don't know which one completed,
-      // so we just keep the array at max size by removing one)
-      executing.shift();
-    }
+    return promise;
   }
 
-  // Wait for remaining downloads
+  // Start initial batch
+  const initialBatch = Math.min(maxParallel, queue.length);
+  for (let i = 0; i < initialBatch; i++) {
+    enqueueNext();
+  }
+
+  // Wait for all to complete
   await Promise.all(executing);
 
   // Mark progress complete

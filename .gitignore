@@ -1,9 +1,11 @@
 mcp-reference/
 node_modules
 dist/
+coverage/
 
 .env
 .claude/figma-outputs
 official-skills-examples
 example-outputs
+mcp-reference-fork-bao
 mcp-reference-fork-bao

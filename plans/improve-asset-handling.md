@@ -13,12 +13,12 @@ This plan implements a comprehensive overhaul of the image and asset handling sy
 
 ### Core Architectural Changes
 
-| Area | Current State | Target State |
-|------|---------------|--------------|
-| **Mask/Crop Handling** | Simple rectangular crops from transform matrices | SVG Matte compositing with dest-in blend mode for complex vector masks |
-| **Format Detection** | Content-type header parsing | Entropy-based heuristic analysis (transparency, entropy, palette size) |
-| **Batch Conversion** | Individual processing, no concurrency control | p-limit controlled stream architecture with memory-aware batching |
-| **Vector Optimization** | Container collapsing only | Content-addressable deduplication + SVGO minification + sprite generation |
+| Area                    | Current State                                    | Target State                                                              |
+| ----------------------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| **Mask/Crop Handling**  | Simple rectangular crops from transform matrices | SVG Matte compositing with dest-in blend mode for complex vector masks    |
+| **Format Detection**    | Content-type header parsing                      | Entropy-based heuristic analysis (transparency, entropy, palette size)    |
+| **Batch Conversion**    | Individual processing, no concurrency control    | p-limit controlled stream architecture with memory-aware batching         |
+| **Vector Optimization** | Container collapsing only                        | Content-addressable deduplication + SVGO minification + sprite generation |
 
 ---
 
@@ -29,26 +29,31 @@ This plan implements a comprehensive overhaul of the image and asset handling sy
 This implementation plan directly addresses the checklist items in the main ROADMAP.md:
 
 ### Phase 1 → ROADMAP: "Improved mask/crop handling"
+
 - [ ] Fix complex mask shape exports → SVG Matte Compositing (Section 1.2)
 - [ ] Support nested masks and transformations → Nested Stencil Scopes (Section 1.3.2)
 - [ ] Better crop boundary detection → Boundary Detection Algorithm (Section 1.4)
 
 ### Phase 2 → ROADMAP: "Smart format detection"
+
 - [ ] Auto-detect optimal format based on node properties → Content Analysis Engine (Section 2.1)
 - [ ] Batch format conversion (PNG → WebP, SVG → PNG) → Auto-Conversion Pipeline (Section 2.3)
 - [ ] Format-specific optimization settings → Encoder Settings (Section 2.2)
 
 ### Phase 3 → ROADMAP: Batch Processing (new item)
+
 - [ ] p-limit controlled concurrency → Batch Processing Architecture (Section 3.2)
 - [ ] Memory-aware processing → Stream-Based Concurrency (Section 3.2)
 - [ ] Download-process pipeline → Integrated Pipeline (Section 3.2)
 
 ### Phase 4 → ROADMAP: "Vector optimization"
+
 - [ ] SVG minification and cleanup → SVGO Integration (Section 4.4)
 - [ ] Duplicate vector deduplication → Content-Addressable Hashing (Section 4.1-4.3)
 - [ ] Icon set consolidation → Sprite Generation (Section 4.5)
 
 ### Version Tracking
+
 - **Target Release**: v0.3.0 - Enhanced Transformations
 - **Tracking Issue**: TBD
 - **Progress**: Updated in ROADMAP.md checklist
@@ -209,7 +214,6 @@ export function alignCoordinateSpaces(
  * - Result alpha = dest_alpha * source_alpha
  * - For VECTOR masks, the SVG has 100% opacity where fill exists
  */
-
 import sharp from "sharp";
 
 export async function applyVectorMask(
@@ -271,9 +275,12 @@ export async function applyVectorMask(
  * Calculate effective render bounds by intersecting
  * all mask bounds to eliminate empty whitespace
  */
-function calculateEffectiveBounds(
-  alignment: AlignedAssets
-): { left: number; top: number; width: number; height: number } {
+function calculateEffectiveBounds(alignment: AlignedAssets): {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+} {
   // For now, return full mask bounds
   // TODO: Implement intersection of mask chain for nested masks
   return {
@@ -315,7 +322,13 @@ export async function applyLuminanceMask(
 
   // Step 3: Apply to target
   await sharp(targetImagePath)
-    .joinChannel(maskAlpha, { raw: { width: alignment.compositeDimensions.width, height: alignment.compositeDimensions.height, channels: 1 } })
+    .joinChannel(maskAlpha, {
+      raw: {
+        width: alignment.compositeDimensions.width,
+        height: alignment.compositeDimensions.height,
+        channels: 1,
+      },
+    })
     .toFile(outputPath);
 }
 ```
@@ -339,7 +352,10 @@ export async function downloadImagesWithMasks(
   // Download base images and masks
   const allItems = [
     ...items,
-    ...maskRelationships.map((r) => ({ id: r.maskNodeId, url: getMaskUrl(r.maskNodeId) })),
+    ...maskRelationships.map((r) => ({
+      id: r.maskNodeId,
+      url: getMaskUrl(r.maskNodeId),
+    })),
   ];
 
   const baseDownloads = await downloadImages(allItems, options);
@@ -348,8 +364,12 @@ export async function downloadImagesWithMasks(
   const compositedResults: DownloadResult[] = [];
 
   for (const relationship of maskRelationships) {
-    const targetResult = baseDownloads.find((r) => r.id === relationship.targetNodeId);
-    const maskResult = baseDownloads.find((r) => r.id === relationship.maskNodeId);
+    const targetResult = baseDownloads.find(
+      (r) => r.id === relationship.targetNodeId
+    );
+    const maskResult = baseDownloads.find(
+      (r) => r.id === relationship.maskNodeId
+    );
 
     if (targetResult && maskResult) {
       const alignment = alignCoordinateSpaces(
@@ -390,25 +410,25 @@ export async function downloadImagesWithMasks(
 
 ### Deliverables
 
-| File | Purpose |
-|------|---------|
-| `src/images/mask-detector.ts` | Detect isMask nodes and sibling relationships |
-| `src/images/coordinate-aligner.ts` | Normalize coordinate spaces for compositing |
-| `src/images/mask-compositor.ts` | SVG matte compositing engine |
-| `src/images/index.ts` | Export new mask handling APIs |
-| `src/images/__tests__/mask-compositor.test.ts` | Unit tests for compositing logic |
+| File                                           | Purpose                                       |
+| ---------------------------------------------- | --------------------------------------------- |
+| `src/images/mask-detector.ts`                  | Detect isMask nodes and sibling relationships |
+| `src/images/coordinate-aligner.ts`             | Normalize coordinate spaces for compositing   |
+| `src/images/mask-compositor.ts`                | SVG matte compositing engine                  |
+| `src/images/index.ts`                          | Export new mask handling APIs                 |
+| `src/images/__tests__/mask-compositor.test.ts` | Unit tests for compositing logic              |
 
 ### Success Criteria
 
 > **📍 ROADMAP Reference**: [`ROADMAP.md - Improved mask/crop handling`](../ROADMAP.md#image--asset-handling)
 
-| Checklist Item | Status | Test Case |
-|----------------|--------|-----------|
-| Circular avatars export correctly (not rectangular crops) | [ ] | `mask-compositor.test.ts` |
-| Complex polygon masks render accurately | [ ] | `mask-compositor.test.ts` |
-| Luminance masks apply brightness-based opacity | [ ] | `mask-compositor.test.ts` |
-| Nested mask relationships detected (at least 2 levels) | [ ] | `mask-detector.test.ts` |
-| Boundary detection eliminates empty whitespace | [ ] | `coordinate-aligner.test.ts` |
+| Checklist Item                                            | Status | Test Case                    |
+| --------------------------------------------------------- | ------ | ---------------------------- |
+| Circular avatars export correctly (not rectangular crops) | [ ]    | `mask-compositor.test.ts`    |
+| Complex polygon masks render accurately                   | [ ]    | `mask-compositor.test.ts`    |
+| Luminance masks apply brightness-based opacity            | [ ]    | `mask-compositor.test.ts`    |
+| Nested mask relationships detected (at least 2 levels)    | [ ]    | `mask-detector.test.ts`      |
+| Boundary detection eliminates empty whitespace            | [ ]    | `coordinate-aligner.test.ts` |
 
 ---
 
@@ -421,6 +441,7 @@ export async function downloadImagesWithMasks(
 ### Problem Statement
 
 Current format detection relies solely on HTTP `content-type` headers, delegating all decisions to the Figma API which defaults to PNG. This results in:
+
 - Photos exported as PNG-24 (5-10x larger than JPEG)
 - Graphics suffering JPEG ringing artifacts
 - No transparency-aware format selection
@@ -436,6 +457,7 @@ Current format detection relies solely on HTTP `content-type` headers, delegatin
 ### Technical Strategy: Entropy-Based Heuristics
 
 Based on research, implement a three-gate decision system:
+
 1. **Transparency Gate**: `sharp.stats().isOpaque`
 2. **Entropy Gate**: Shannon entropy to detect photo vs graphic
 3. **Palette Gate**: Unique color count for PNG-8 eligibility
@@ -451,7 +473,6 @@ Based on research, implement a three-gate decision system:
  * Analyzes pixel data to determine optimal encoding format
  * based on transparency, entropy, and palette characteristics.
  */
-
 import sharp from "sharp";
 
 export interface ContentAnalysis {
@@ -515,14 +536,12 @@ export async function analyzeImageContent(
 /**
  * Generate format recommendation based on heuristics
  */
-function generateRecommendation(
-  analysis: {
-    hasTransparency: boolean;
-    entropy: number;
-    uniqueColors: number;
-    dimensions: { width: number; height: number };
-  }
-): {
+function generateRecommendation(analysis: {
+  hasTransparency: boolean;
+  entropy: number;
+  uniqueColors: number;
+  dimensions: { width: number; height: number };
+}): {
   recommendedFormat: "png" | "jpeg" | "webp" | "png8";
   recommendedQuality: number;
   confidence: number;
@@ -532,16 +551,28 @@ function generateRecommendation(
     // Has transparency - JPEG eliminated
     if (analysis.entropy > 6.0) {
       // Complex photo with transparency
-      return { recommendedFormat: "webp", recommendedQuality: 85, confidence: 0.9 };
+      return {
+        recommendedFormat: "webp",
+        recommendedQuality: 85,
+        confidence: 0.9,
+      };
     }
     // Simple graphic with transparency
-    return { recommendedFormat: "png", recommendedQuality: 100, confidence: 0.85 };
+    return {
+      recommendedFormat: "png",
+      recommendedQuality: 100,
+      confidence: 0.85,
+    };
   }
 
   // Gate 2: Entropy (Photo vs Graphic)
   if (analysis.entropy > 6.0) {
     // High entropy = photograph
-    return { recommendedFormat: "jpeg", recommendedQuality: 85, confidence: 0.95 };
+    return {
+      recommendedFormat: "jpeg",
+      recommendedQuality: 85,
+      confidence: 0.95,
+    };
   }
 
   // Gate 3: Palette size
@@ -550,7 +581,11 @@ function generateRecommendation(
     analysis.dimensions.width * analysis.dimensions.height < 512 * 512
   ) {
     // Small graphic with limited palette
-    return { recommendedFormat: "png8", recommendedQuality: 100, confidence: 0.9 };
+    return {
+      recommendedFormat: "png8",
+      recommendedQuality: 100,
+      confidence: 0.9,
+    };
   }
 
   // Medium entropy graphic
@@ -597,7 +632,6 @@ async function estimateUniqueColors(
  * Tuned for balance between file size and generation speed
  * in high-throughput batch processing scenarios.
  */
-
 import sharp from "sharp";
 
 export interface EncoderSettings {
@@ -640,9 +674,7 @@ export function getOptimizedSettings(
  * - 4:2:0 (default): Color at 1/2 resolution (smallest, can bleed)
  * - 4:4:4: Full resolution color (larger, sharp edges)
  */
-function optimizeJpegSettings(
-  analysis: ContentAnalysis
-): sharp.JpegOptions {
+function optimizeJpegSettings(analysis: ContentAnalysis): sharp.JpegOptions {
   // For graphics (low entropy), use 4:4:4 to prevent color bleed
   const chromaSubsampling = analysis.entropy < 4.5 ? "4:4:4" : "4:2:0";
 
@@ -658,9 +690,7 @@ function optimizeJpegSettings(
  *
  * Use adaptive filtering for better compression
  */
-function optimizePngSettings(
-  analysis: ContentAnalysis
-): sharp.PngOptions {
+function optimizePngSettings(analysis: ContentAnalysis): sharp.PngOptions {
   if (analysis.recommendedFormat === "png8") {
     return {
       palette: true,
@@ -682,9 +712,7 @@ function optimizePngSettings(
  *
  * Use smartSubsample for edge-aware encoding
  */
-function optimizeWebpSettings(
-  analysis: ContentAnalysis
-): sharp.WebpOptions {
+function optimizeWebpSettings(analysis: ContentAnalysis): sharp.WebpOptions {
   return {
     quality: analysis.recommendedQuality,
     smartSubsample: true, // Detects sharp edges, reduces subsampling there
@@ -704,10 +732,9 @@ function optimizeWebpSettings(
  *
  * Analyzes content and converts to optimal format
  */
-
-import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import sharp from "sharp";
 
 import { analyzeImageContent } from "./content-analyzer.js";
 import { getOptimizedSettings } from "./format-optimizer.js";
@@ -740,7 +767,10 @@ export async function convertToOptimalFormat(
   const settings = getOptimizedSettings(analysis);
 
   // Generate output path
-  const basename = inputPath.split("/").pop()!.replace(/\.[^.]+$/, "");
+  const basename = inputPath
+    .split("/")
+    .pop()!
+    .replace(/\.[^.]+$/, "");
   const outputPath = join(outputDir, `${basename}.${settings.format}`);
 
   // Ensure output directory exists
@@ -779,24 +809,24 @@ export async function convertToOptimalFormat(
 
 ### Deliverables
 
-| File | Purpose |
-|------|---------|
-| `src/images/content-analyzer.ts` | Entropy-based content analysis |
-| `src/images/format-optimizer.ts` | Format-specific encoder settings |
-| `src/images/auto-converter.ts` | Automatic conversion pipeline |
-| `src/images/__tests__/content-analyzer.test.ts` | Unit tests for analysis logic |
+| File                                            | Purpose                          |
+| ----------------------------------------------- | -------------------------------- |
+| `src/images/content-analyzer.ts`                | Entropy-based content analysis   |
+| `src/images/format-optimizer.ts`                | Format-specific encoder settings |
+| `src/images/auto-converter.ts`                  | Automatic conversion pipeline    |
+| `src/images/__tests__/content-analyzer.test.ts` | Unit tests for analysis logic    |
 
 ### Success Criteria
 
 > **📍 ROADMAP Reference**: [`ROADMAP.md - Smart format detection`](../ROADMAP.md#image--asset-handling)
 
-| Checklist Item | Status | Test Case |
-|----------------|--------|-----------|
-| Photos (entropy > 6.0) converted to JPEG/WebP with 80%+ size reduction | [ ] | `auto-converter.test.ts` |
-| Graphics (entropy < 4.5) preserved as PNG without artifacts | [ ] | `auto-converter.test.ts` |
-| Transparency detected correctly (JPEG never selected) | [ ] | `content-analyzer.test.ts` |
-| PNG-8 used for icons with <256 colors | [ ] | `format-optimizer.test.ts` |
-| Chroma subsampling 4:4:4 used for low-entropy JPEG content | [ ] | `format-optimizer.test.ts` |
+| Checklist Item                                                         | Status | Test Case                  |
+| ---------------------------------------------------------------------- | ------ | -------------------------- |
+| Photos (entropy > 6.0) converted to JPEG/WebP with 80%+ size reduction | [ ]    | `auto-converter.test.ts`   |
+| Graphics (entropy < 4.5) preserved as PNG without artifacts            | [ ]    | `auto-converter.test.ts`   |
+| Transparency detected correctly (JPEG never selected)                  | [ ]    | `content-analyzer.test.ts` |
+| PNG-8 used for icons with <256 colors                                  | [ ]    | `format-optimizer.test.ts` |
+| Chroma subsampling 4:4:4 used for low-entropy JPEG content             | [ ]    | `format-optimizer.test.ts` |
 
 ---
 
@@ -809,6 +839,7 @@ export async function convertToOptimalFormat(
 ### Problem Statement
 
 Current batch processing has no concurrency control and downloads/processes images in an uncontrolled manner. This causes:
+
 - Memory exhaustion with large file batches (500+ assets)
 - Libuv thread pool saturation
 - glibc memory fragmentation on Linux
@@ -824,6 +855,7 @@ Current batch processing has no concurrency control and downloads/processes imag
 ### Technical Strategy: p-limit Stream Architecture
 
 Based on research findings:
+
 - **DO NOT** use Worker Threads (Sharp already multi-threaded via libvips)
 - **DO** use p-limit for concurrency control
 - **DO** disable Sharp cache for one-pass pipelines
@@ -851,12 +883,11 @@ npm install p-limit
  * - Concurrency should match os.cpus().length
  * - Sharp cache should be disabled for one-pass pipelines
  */
-
-import pLimit from "p-limit";
 import os from "node:os";
+import pLimit from "p-limit";
 import sharp from "sharp";
 
-import { convertToOptimalFormat, ConversionResult } from "./auto-converter.js";
+import { ConversionResult, convertToOptimalFormat } from "./auto-converter.js";
 
 export interface BatchProcessingOptions {
   /** Output directory for converted images */
@@ -976,10 +1007,10 @@ export async function processBatchStream(
  * Downloads images from Figma and converts to optimal format
  * in a single memory-aware operation.
  */
-
-import { downloadImages } from "./downloader.js";
-import { processBatch } from "./batch-processor.js";
 import { mkdir } from "node:fs/promises";
+
+import { processBatch } from "./batch-processor.js";
+import { downloadImages } from "./downloader.js";
 
 export interface PipelineOptions {
   /** Temporary directory for raw downloads */
@@ -1069,23 +1100,23 @@ export async function executePipeline(
 
 ### Deliverables
 
-| File | Purpose |
-|------|---------|
-| `src/images/batch-processor.ts` | p-limit controlled batch processing |
-| `src/images/download-process-pipeline.ts` | Integrated download+convert pipeline |
-| `src/images/__tests__/batch-processor.test.ts` | Concurrency control tests |
+| File                                           | Purpose                              |
+| ---------------------------------------------- | ------------------------------------ |
+| `src/images/batch-processor.ts`                | p-limit controlled batch processing  |
+| `src/images/download-process-pipeline.ts`      | Integrated download+convert pipeline |
+| `src/images/__tests__/batch-processor.test.ts` | Concurrency control tests            |
 
 ### Success Criteria
 
 > **📍 ROADMAP Reference**: [`ROADMAP.md - Batch processing & concurrency`](../ROADMAP.md#image--asset-handling)
 
-| Checklist Item | Status | Test Case |
-|----------------|--------|-----------|
-| Processing 500+ images without memory exhaustion | [ ] | `batch-processor.test.ts` |
-| Stable heap usage (no memory leaks) | [ ] | `batch-processor.test.ts` |
-| CPU utilization matches concurrency limit | [ ] | `batch-processor.test.ts` |
-| Sharp cache properly disabled for batch operations | [ ] | `batch-processor.test.ts` |
-| Stream processing handles 1000+ image datasets | [ ] | `batch-processor.test.ts` |
+| Checklist Item                                     | Status | Test Case                 |
+| -------------------------------------------------- | ------ | ------------------------- |
+| Processing 500+ images without memory exhaustion   | [ ]    | `batch-processor.test.ts` |
+| Stable heap usage (no memory leaks)                | [ ]    | `batch-processor.test.ts` |
+| CPU utilization matches concurrency limit          | [ ]    | `batch-processor.test.ts` |
+| Sharp cache properly disabled for batch operations | [ ]    | `batch-processor.test.ts` |
+| Stream processing handles 1000+ image datasets     | [ ]    | `batch-processor.test.ts` |
 
 ---
 
@@ -1098,6 +1129,7 @@ export async function executePipeline(
 ### Problem Statement
 
 Current SVG handling only does container collapsing. Raw Figma SVG exports contain:
+
 - Excessive metadata (data-figma-id, editor attributes)
 - Redundant groups and transforms
 - Non-canonical structures preventing deduplication
@@ -1132,8 +1164,7 @@ npm install svgo
  * 3. Normalizing whitespace and transforms
  * 4. Converting shapes to paths (optional)
  */
-
-import { parse, SVGAst } from "svg-parser";
+import { SVGAst, parse } from "svg-parser";
 
 export interface CanonicalizedSVG {
   /** Canonicalized SVG string */
@@ -1202,12 +1233,11 @@ function serialize(ast: SVGAst): string {
  * Maintains a registry of SVG hashes to eliminate duplicate
  * assets across large component libraries.
  */
-
 import { createHash } from "node:crypto";
-import { mkdir, writeFile, symlink } from "node:fs/promises";
+import { mkdir, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { canonicalizeSvg, CanonicalizedSVG } from "./canonicalizer.js";
+import { CanonicalizedSVG, canonicalizeSvg } from "./canonicalizer.js";
 
 export interface DeduplicationResult {
   /** All processed SVGs (deduplicated) */
@@ -1295,7 +1325,6 @@ export async function deduplicateSvgs(
  * Configured specifically for Figma exports with critical
  * plugins to preserve viewBox and enable CSS responsiveness.
  */
-
 import { optimize } from "svgo";
 
 export interface SvgOptimizationOptions {
@@ -1379,7 +1408,6 @@ export async function optimizeSvgBatch(
  * Combines deduplicated SVGs into a single sprite sheet using
  * the <symbol> syntax for optimal network performance.
  */
-
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -1492,26 +1520,26 @@ export function generateSpriteUsageDocumentation(
 
 ### Deliverables
 
-| File | Purpose |
-|------|---------|
-| `src/vectors/canonicalizer.ts` | SVG canonicalization for hashing |
-| `src/vectors/deduplicator.ts` | Content-addressable deduplication |
-| `src/vectors/optimizer.ts` | SVGO integration with Figma-safe config |
-| `src/vectors/sprite-generator.ts` | Sprite sheet generation |
-| `src/vectors/index.ts` | Export vector APIs |
-| `src/vectors/__tests__/deduplicator.test.ts` | Deduplication tests |
+| File                                         | Purpose                                 |
+| -------------------------------------------- | --------------------------------------- |
+| `src/vectors/canonicalizer.ts`               | SVG canonicalization for hashing        |
+| `src/vectors/deduplicator.ts`                | Content-addressable deduplication       |
+| `src/vectors/optimizer.ts`                   | SVGO integration with Figma-safe config |
+| `src/vectors/sprite-generator.ts`            | Sprite sheet generation                 |
+| `src/vectors/index.ts`                       | Export vector APIs                      |
+| `src/vectors/__tests__/deduplicator.test.ts` | Deduplication tests                     |
 
 ### Success Criteria
 
 > **📍 ROADMAP Reference**: [`ROADMAP.md - Vector optimization`](../ROADMAP.md#image--asset-handling)
 
-| Checklist Item | Status | Test Case |
-|----------------|--------|-----------|
-| Identical SVGs detected regardless of ID/position differences | [ ] | `deduplicator.test.ts` |
-| SVGO optimization reduces file size by 30%+ average | [ ] | `optimizer.test.ts` |
-| viewBox never removed (CSS responsiveness preserved) | [ ] | `optimizer.test.ts` |
-| Sprite sheet reduces HTTP requests from N to 1 | [ ] | `sprite-generator.test.ts` |
-| Deduplication achieves 50%+ reduction in icon libraries | [ ] | `deduplicator.test.ts` |
+| Checklist Item                                                | Status | Test Case                  |
+| ------------------------------------------------------------- | ------ | -------------------------- |
+| Identical SVGs detected regardless of ID/position differences | [ ]    | `deduplicator.test.ts`     |
+| SVGO optimization reduces file size by 30%+ average           | [ ]    | `optimizer.test.ts`        |
+| viewBox never removed (CSS responsiveness preserved)          | [ ]    | `optimizer.test.ts`        |
+| Sprite sheet reduces HTTP requests from N to 1                | [ ]    | `sprite-generator.test.ts` |
+| Deduplication achieves 50%+ reduction in icon libraries       | [ ]    | `deduplicator.test.ts`     |
 
 ---
 
@@ -1523,12 +1551,12 @@ export function generateSpriteUsageDocumentation(
 
 ### Test Coverage Requirements
 
-| Area | Target Coverage | Key Test Scenarios |
-|------|-----------------|-------------------|
-| **Mask Compositing** | 80%+ | Circular masks, polygon masks, nested masks, luminance masks |
-| **Format Detection** | 85%+ | Photos, graphics, mixed content, edge cases |
-| **Batch Processing** | 75%+ | Concurrency control, memory limits, error handling |
-| **Vector Optimization** | 80%+ | Deduplication, SVGO config, sprite generation |
+| Area                    | Target Coverage | Key Test Scenarios                                           |
+| ----------------------- | --------------- | ------------------------------------------------------------ |
+| **Mask Compositing**    | 80%+            | Circular masks, polygon masks, nested masks, luminance masks |
+| **Format Detection**    | 85%+            | Photos, graphics, mixed content, edge cases                  |
+| **Batch Processing**    | 75%+            | Concurrency control, memory limits, error handling           |
+| **Vector Optimization** | 80%+            | Deduplication, SVGO config, sprite generation                |
 
 ### Test Fixtures Required
 
@@ -1638,12 +1666,12 @@ describe("Asset Handling Integration", () => {
 
 ### Existing Files to Modify
 
-| File | Modifications |
-|------|---------------|
-| `src/images/index.ts` | Export new mask handling, batch processing, format detection APIs |
-| `src/client/index.ts` | Integrate mask detection into `downloadImages()` method |
-| `src/extractors/built-in.ts` | Pass mask metadata to download pipeline |
-| `package.json` | Add new dependencies, update exports |
+| File                         | Modifications                                                     |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `src/images/index.ts`        | Export new mask handling, batch processing, format detection APIs |
+| `src/client/index.ts`        | Integrate mask detection into `downloadImages()` method           |
+| `src/extractors/built-in.ts` | Pass mask metadata to download pipeline                           |
+| `package.json`               | Add new dependencies, update exports                              |
 
 ### API Changes
 
@@ -1682,51 +1710,56 @@ client.deduplicateVectors({
 
 ### Technical Risks
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **SVG mask rasterization artifacts** | High | Medium | Test with Figma's own SVG exports; verify dest-in blend mode accuracy |
-| **SVGO viewBox removal** | Critical | Low | Explicitly set `removeViewBox: false`; add validation tests |
-| **Memory fragmentation on Linux** | High | Medium | Document jemalloc recommendation; add glibc detection warning |
-| **Sharp Worker Thread conflicts** | Medium | Low | Document why NOT to use Workers; add architecture notes |
-| **Entropy calculation performance** | Medium | Medium | Gate expensive operations; add dimension thresholds |
-| **False positive mask detection** | Medium | Low | Validate isMask detection against Figma Plugin API behavior |
+| Risk                                 | Impact   | Probability | Mitigation                                                            |
+| ------------------------------------ | -------- | ----------- | --------------------------------------------------------------------- |
+| **SVG mask rasterization artifacts** | High     | Medium      | Test with Figma's own SVG exports; verify dest-in blend mode accuracy |
+| **SVGO viewBox removal**             | Critical | Low         | Explicitly set `removeViewBox: false`; add validation tests           |
+| **Memory fragmentation on Linux**    | High     | Medium      | Document jemalloc recommendation; add glibc detection warning         |
+| **Sharp Worker Thread conflicts**    | Medium   | Low         | Document why NOT to use Workers; add architecture notes               |
+| **Entropy calculation performance**  | Medium   | Medium      | Gate expensive operations; add dimension thresholds                   |
+| **False positive mask detection**    | Medium   | Low         | Validate isMask detection against Figma Plugin API behavior           |
 
 ### Operational Risks
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| **Breaking changes to existing API** | High | Low | Add new methods alongside existing; deprecate old methods gradually |
-| **Increased dependency size** | Low | High | p-limit (~1KB), svgo (~200KB) - acceptable trade-off |
-| **Test fixture file access** | Medium | Medium | Mock Figma API responses; avoid requiring live Figma files for CI |
+| Risk                                 | Impact | Probability | Mitigation                                                          |
+| ------------------------------------ | ------ | ----------- | ------------------------------------------------------------------- |
+| **Breaking changes to existing API** | High   | Low         | Add new methods alongside existing; deprecate old methods gradually |
+| **Increased dependency size**        | Low    | High        | p-limit (~1KB), svgo (~200KB) - acceptable trade-off                |
+| **Test fixture file access**         | Medium | Medium      | Mock Figma API responses; avoid requiring live Figma files for CI   |
 
 ---
 
 ## Implementation Order
 
 ### Sprint 1: Foundation (Week 1-2)
+
 1. Install dependencies
 2. Implement `content-analyzer.ts` with entropy calculation
 3. Implement `format-optimizer.ts` with format-specific settings
 4. Add unit tests for content analysis
 
 ### Sprint 2: Mask Detection (Week 2-3)
+
 1. Implement `mask-detector.ts` for isMask sibling detection
 2. Implement `coordinate-aligner.ts` for bounding box alignment
 3. Add tests for mask relationship detection
 
 ### Sprint 3: Mask Compositing (Week 3-4)
+
 1. Implement `mask-compositor.ts` with SVG matte technique
 2. Implement luminance mask support
 3. Add integration tests for various mask types
 4. Integration with download pipeline
 
 ### Sprint 4: Batch Processing (Week 4-5)
+
 1. Implement `batch-processor.ts` with p-limit
 2. Implement `download-process-pipeline.ts`
 3. Add memory usage tests
 4. Sharp cache integration
 
 ### Sprint 5: Vector Optimization (Week 5-6)
+
 1. Implement SVG canonicalization
 2. Implement content-addressable deduplication
 3. Integrate SVGO with Figma-safe config
@@ -1734,6 +1767,7 @@ client.deduplicateVectors({
 5. Add vector optimization tests
 
 ### Sprint 6: Integration & Documentation (Week 6-7)
+
 1. Update client API methods
 2. Update type definitions
 3. Add API documentation with JSDoc
@@ -1744,14 +1778,14 @@ client.deduplicateVectors({
 
 ## Performance Targets
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| **Mask Compositing Speed** | N/A | <500ms per mask |
-| **Format Conversion Speed** | N/A | 1000 images/100ms |
-| **Batch Memory Usage** | Unbounded | <10MB per 1000 nodes |
-| **SVG Minification** | 0% | 30-60% size reduction |
-| **Vector Deduplication** | 0% | 50%+ reduction in icon sets |
-| **HTTP Requests (Sprites)** | N | 1 (from N) |
+| Metric                      | Current   | Target                      |
+| --------------------------- | --------- | --------------------------- |
+| **Mask Compositing Speed**  | N/A       | <500ms per mask             |
+| **Format Conversion Speed** | N/A       | 1000 images/100ms           |
+| **Batch Memory Usage**      | Unbounded | <10MB per 1000 nodes        |
+| **SVG Minification**        | 0%        | 30-60% size reduction       |
+| **Vector Deduplication**    | 0%        | 50%+ reduction in icon sets |
+| **HTTP Requests (Sprites)** | N         | 1 (from N)                  |
 
 ---
 
@@ -1760,6 +1794,7 @@ client.deduplicateVectors({
 > **📍 ROADMAP Reference**: These metrics correspond to the checklist items in [`ROADMAP.md - Image & Asset Handling`](../ROADMAP.md#image--asset-handling). All items are currently **unchecked** as work has not yet begun.
 
 ### Phase 1: Mask/Crop Handling
+
 - [ ] Circular avatar exports match Figma rendering
 - [ ] Complex polygon masks render accurately
 - [ ] Luminance masks apply correct opacity
@@ -1767,6 +1802,7 @@ client.deduplicateVectors({
 - [ ] Boundary detection eliminates whitespace
 
 ### Phase 2: Smart Format Detection
+
 - [ ] Photos achieve 80%+ size reduction via JPEG/WebP
 - [ ] Graphics preserved without JPEG artifacts
 - [ ] Transparency detected correctly (100% accuracy)
@@ -1774,12 +1810,14 @@ client.deduplicateVectors({
 - [ ] Format selection matches human judgment in 90%+ cases
 
 ### Phase 3: Batch Processing
+
 - [ ] Process 500+ images without OOM
 - [ ] Stable heap usage (no leaks)
 - [ ] CPU utilization matches concurrency limit
 - [ ] Sharp cache disabled for batch operations
 
 ### Phase 4: Vector Optimization
+
 - [ ] Identical SVGs detected via content hashing
 - [ ] SVGO achieves 30%+ size reduction
 - [ ] viewBox preserved in 100% of exports
@@ -1818,4 +1856,4 @@ Based on the comprehensive research provided:
 
 ---
 
-*This plan is a living document and will be updated as implementation progresses and new insights are discovered.*
+_This plan is a living document and will be updated as implementation progresses and new insights are discovered._

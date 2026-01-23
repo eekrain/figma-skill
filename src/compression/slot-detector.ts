@@ -8,25 +8,25 @@
  * 4. Mark varying nodes as slots
  * 5. Extract default value from most common instance
  */
-
 import type { SimplifiedNode } from "@/extractors/types";
+
 import type {
+  CodeHint,
+  NodeComparison,
+  NodePath,
   SlotDefinition,
   SlotDetectionResult,
-  NodePath,
-  NodeComparison,
-  CodeHint,
 } from "./types";
 
 /**
  * Default properties to always check for slots regardless of similarity
  */
 const DEFAULT_PROPERTY_SLOTS = [
-  'text',           // Text content varies
-  'fills',          // Colors vary
-  'strokes',        // Stroke colors vary
-  'opacity',        // Opacity varies
-  'layout',         // Position varies
+  "text", // Text content varies
+  "fills", // Colors vary
+  "strokes", // Stroke colors vary
+  "opacity", // Opacity varies
+  "layout", // Position varies
 ];
 
 /**
@@ -74,8 +74,8 @@ export function detectSlots(
   const neverSlots = new Set(config.neverSlots ?? []);
   const propertySlots = new Set(config.propertySlots ?? DEFAULT_PROPERTY_SLOTS);
   const useStructural = config.useStructuralDetection ?? true;
-  const maxSlots = config.maxSlots ?? 15;  // Limit slots per component
-  const maxDepth = config.maxDepth ?? 3;    // Limit path depth for slots
+  const maxSlots = config.maxSlots ?? 15; // Limit slots per component
+  const maxDepth = config.maxDepth ?? 3; // Limit path depth for slots
 
   // Collect all node paths across instances
   const allPaths = collectAllPaths(instances);
@@ -90,12 +90,14 @@ export function detectSlots(
 
   // Calculate similarity score
   const matchingPaths = comparisons.filter((c) => c.equal).length;
-  const similarityScore = comparisons.length > 0
-    ? matchingPaths / comparisons.length
-    : 1;
+  const similarityScore =
+    comparisons.length > 0 ? matchingPaths / comparisons.length : 1;
 
   // Detect slots based on differences
-  const slotCandidates: Array<{comparison: NodeComparison, priority: number}> = [];
+  const slotCandidates: Array<{
+    comparison: NodeComparison;
+    priority: number;
+  }> = [];
 
   for (const comparison of comparisons) {
     const pathStr = pathToString(comparison.path);
@@ -125,7 +127,10 @@ export function detectSlots(
 
   const slots = new Map<string, SlotDefinition>();
   for (let i = 0; i < Math.min(slotCandidates.length, maxSlots); i++) {
-    const slot = createSlotFromComparison(slotCandidates[i].comparison, instances);
+    const slot = createSlotFromComparison(
+      slotCandidates[i].comparison,
+      instances
+    );
     if (slot) {
       slots.set(slot.slotId, slot);
     }
@@ -159,17 +164,17 @@ function calculateSlotPriority(
   const depth = comparison.path.length;
 
   // Base priority: higher for shallower paths
-  let priority = 100 - (depth * 10);
+  let priority = 100 - depth * 10;
 
   // Boost for direct properties (not nested in children)
-  if (!pathStr.includes('children')) {
+  if (!pathStr.includes("children")) {
     priority += 50;
   }
 
   // Boost for high-value properties
-  if (pathStr.includes('text')) priority += 30;
-  if (pathStr.includes('fills')) priority += 25;
-  if (pathStr.includes('strokes')) priority += 20;
+  if (pathStr.includes("text")) priority += 30;
+  if (pathStr.includes("fills")) priority += 25;
+  if (pathStr.includes("strokes")) priority += 20;
 
   // Penalize very deep paths
   if (depth > 4) priority -= 30;
@@ -181,10 +186,16 @@ function calculateSlotPriority(
 /**
  * Checks if a path ends in a property that should always be a slot
  */
-function isPropertySlotPath(pathStr: string, propertySlots: Set<string>): boolean {
+function isPropertySlotPath(
+  pathStr: string,
+  propertySlots: Set<string>
+): boolean {
   // Only check direct properties, not nested children
   for (const prop of propertySlots) {
-    if ((pathStr === prop) || (pathStr.endsWith(`.${prop}`) && !pathStr.includes('.children.'))) {
+    if (
+      pathStr === prop ||
+      (pathStr.endsWith(`.${prop}`) && !pathStr.includes(".children."))
+    ) {
       return true;
     }
   }
@@ -224,7 +235,7 @@ export function detectSlotsStructural(
   }
 
   // Step 2: Collect slot candidates with priority
-  const slotCandidates: Array<{pathStr: string, priority: number}> = [];
+  const slotCandidates: Array<{ pathStr: string; priority: number }> = [];
 
   for (const pathStr of structuralPaths) {
     const path = stringToPath(pathStr);
@@ -237,8 +248,8 @@ export function detectSlotsStructural(
 
     // Check if this path ends in a property slot
     const lastPathPart = path[path.length - 1];
-    const isPropertySlot = typeof lastPathPart === 'string' &&
-      propertySlots.has(lastPathPart);
+    const isPropertySlot =
+      typeof lastPathPart === "string" && propertySlots.has(lastPathPart);
 
     if (isPropertySlot) {
       // Calculate priority
@@ -253,7 +264,7 @@ export function detectSlotsStructural(
   for (let i = 0; i < Math.min(slotCandidates.length, maxSlots); i++) {
     const { pathStr } = slotCandidates[i];
     const path = stringToPath(pathStr);
-    const values = instances.map(i => getValueAtPath(i, path));
+    const values = instances.map((i) => getValueAtPath(i, path));
     // Use bracket-notation-safe slot ID
     const slotId = `slot_${pathStr.replace(/[\.\[\]]/g, "_")}`;
     const valueType = determineValueTypeFromPath(pathStr);
@@ -271,7 +282,10 @@ export function detectSlotsStructural(
     }
 
     // Phase 2: Generate semantic name
-    const semanticName = generateSemanticName(pathStr, valueType as SlotDefinition["valueType"]);
+    const semanticName = generateSemanticName(
+      pathStr,
+      valueType as SlotDefinition["valueType"]
+    );
 
     slots.set(slotId, {
       slotId,
@@ -280,16 +294,19 @@ export function detectSlotsStructural(
       defaultValue,
       variations,
       instanceCount: instances.length,
-      codeHint: generateCodeHint(valueType as SlotDefinition["valueType"], defaultValue, pathStr),
-      semanticName,  // NEW: Semantic name for better LLM comprehension
+      codeHint: generateCodeHint(
+        valueType as SlotDefinition["valueType"],
+        defaultValue,
+        pathStr
+      ),
+      semanticName, // NEW: Semantic name for better LLM comprehension
     });
   }
 
   // Calculate similarity score
   const matchingPaths = structuralPaths.size - slots.size;
-  const similarityScore = structuralPaths.size > 0
-    ? matchingPaths / structuralPaths.size
-    : 1;
+  const similarityScore =
+    structuralPaths.size > 0 ? matchingPaths / structuralPaths.size : 1;
 
   return {
     slots,
@@ -302,21 +319,24 @@ export function detectSlotsStructural(
 /**
  * Calculates priority for a structural slot candidate
  */
-function calculateStructuralSlotPriority(pathStr: string, path: NodePath): number {
+function calculateStructuralSlotPriority(
+  pathStr: string,
+  path: NodePath
+): number {
   const depth = path.length;
 
   // Base priority: higher for shallower paths
-  let priority = 100 - (depth * 10);
+  let priority = 100 - depth * 10;
 
   // Boost for direct properties (not nested in children)
-  if (!pathStr.includes('children')) {
+  if (!pathStr.includes("children")) {
     priority += 50;
   }
 
   // Boost for high-value properties
-  if (pathStr.includes('text')) priority += 30;
-  if (pathStr.includes('fills')) priority += 25;
-  if (pathStr.includes('strokes')) priority += 20;
+  if (pathStr.includes("text")) priority += 30;
+  if (pathStr.includes("fills")) priority += 25;
+  if (pathStr.includes("strokes")) priority += 20;
 
   // Penalize very deep paths
   if (depth > 4) priority -= 30;
@@ -338,28 +358,28 @@ function collectPaths(
 
   // Collect property paths
   if (node.text !== undefined) {
-    paths.add(pathToString([...currentPath, 'text']));
+    paths.add(pathToString([...currentPath, "text"]));
   }
   if (node.fills !== undefined) {
-    paths.add(pathToString([...currentPath, 'fills']));
+    paths.add(pathToString([...currentPath, "fills"]));
   }
   if (node.strokes !== undefined) {
-    paths.add(pathToString([...currentPath, 'strokes']));
+    paths.add(pathToString([...currentPath, "strokes"]));
   }
   if (node.opacity !== undefined) {
-    paths.add(pathToString([...currentPath, 'opacity']));
+    paths.add(pathToString([...currentPath, "opacity"]));
   }
   if (node.layout !== undefined) {
-    paths.add(pathToString([...currentPath, 'layout']));
+    paths.add(pathToString([...currentPath, "layout"]));
   }
   if (node.visible !== undefined) {
-    paths.add(pathToString([...currentPath, 'visible']));
+    paths.add(pathToString([...currentPath, "visible"]));
   }
 
   // Recurse into children
   if (node.children) {
     for (let i = 0; i < node.children.length; i++) {
-      collectPaths(node.children[i], [...currentPath, 'children', i], paths);
+      collectPaths(node.children[i], [...currentPath, "children", i], paths);
     }
   }
 }
@@ -368,13 +388,13 @@ function collectPaths(
  * Determines value type based on path
  */
 function determineValueTypeFromPath(pathStr: string): string {
-  if (pathStr.includes('text')) return 'text';
-  if (pathStr.includes('fills')) return 'fills';
-  if (pathStr.includes('strokes')) return 'strokes';
-  if (pathStr.includes('opacity')) return 'opacity';
-  if (pathStr.includes('visible')) return 'visibility';
-  if (pathStr.includes('layout')) return 'property';
-  return 'property';
+  if (pathStr.includes("text")) return "text";
+  if (pathStr.includes("fills")) return "fills";
+  if (pathStr.includes("strokes")) return "strokes";
+  if (pathStr.includes("opacity")) return "opacity";
+  if (pathStr.includes("visible")) return "visibility";
+  if (pathStr.includes("layout")) return "property";
+  return "property";
 }
 
 /**
@@ -410,22 +430,22 @@ function collectAllPaths(instances: SimplifiedNode[]): Set<string> {
 
     // Add property paths for this node
     if (node.text !== undefined) {
-      paths.add(pathToString([...currentPath, 'text']));
+      paths.add(pathToString([...currentPath, "text"]));
     }
     if (node.fills !== undefined) {
-      paths.add(pathToString([...currentPath, 'fills']));
+      paths.add(pathToString([...currentPath, "fills"]));
     }
     if (node.strokes !== undefined) {
-      paths.add(pathToString([...currentPath, 'strokes']));
+      paths.add(pathToString([...currentPath, "strokes"]));
     }
     if (node.opacity !== undefined) {
-      paths.add(pathToString([...currentPath, 'opacity']));
+      paths.add(pathToString([...currentPath, "opacity"]));
     }
     if (node.layout !== undefined) {
-      paths.add(pathToString([...currentPath, 'layout']));
+      paths.add(pathToString([...currentPath, "layout"]));
     }
     if (node.visible !== undefined) {
-      paths.add(pathToString([...currentPath, 'visible']));
+      paths.add(pathToString([...currentPath, "visible"]));
     }
 
     // Recurse into children
@@ -494,7 +514,9 @@ function getValueAtPath(node: SimplifiedNode, path: NodePath): unknown {
 /**
  * Determines the type of difference between values
  */
-function getDifferenceType(values: unknown[]): "value" | "type" | "missing" | "extra" {
+function getDifferenceType(
+  values: unknown[]
+): "value" | "type" | "missing" | "extra" {
   const types = values.map((v) => {
     if (v === undefined || v === null) return "missing";
     return typeof v;
@@ -565,7 +587,7 @@ function createSlotFromComparison(
     variations,
     instanceCount: instances.length,
     codeHint: generateCodeHint(valueType, defaultValue, pathStr),
-    semanticName,  // NEW: Semantic name for better LLM comprehension
+    semanticName, // NEW: Semantic name for better LLM comprehension
   };
 }
 
@@ -574,9 +596,12 @@ function createSlotFromComparison(
  * Helps LLMs understand the purpose of the slot
  * Examples: "icon-color", "button-text", "card-opacity"
  */
-function generateSemanticName(pathStr: string, valueType: SlotDefinition["valueType"]): string {
+function generateSemanticName(
+  pathStr: string,
+  valueType: SlotDefinition["valueType"]
+): string {
   // Extract the last part of the path (property name)
-  const pathParts = pathStr.split(/[.\[\]]+/).filter(p => p);
+  const pathParts = pathStr.split(/[.\[\]]+/).filter((p) => p);
   const lastPart = pathParts[pathParts.length - 1] || "";
 
   // Extract potential parent context (e.g., "icon", "button", "card")
@@ -584,21 +609,22 @@ function generateSemanticName(pathStr: string, valueType: SlotDefinition["valueT
   if (pathParts.length >= 2) {
     // Look for common UI element names
     const parentPart = pathParts[pathParts.length - 2] || "";
-    context = parentPart.toLowerCase()
-      .replace(/[^a-z0-9]/g, ' ')
+    context = parentPart
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, " ")
       .trim()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join('');
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("");
   }
 
   // Map property names to semantic terms
   const propertyMap: Record<string, string> = {
-    'text': 'Text',
-    'fills': 'Color',
-    'strokes': 'Stroke',
-    'opacity': 'Opacity',
-    'visible': 'Visibility',
+    text: "Text",
+    fills: "Color",
+    strokes: "Stroke",
+    opacity: "Opacity",
+    visible: "Visibility",
   };
 
   const propertySemantic = propertyMap[lastPart] || lastPart;
@@ -608,7 +634,7 @@ function generateSemanticName(pathStr: string, valueType: SlotDefinition["valueT
     // "Icon" + "Color" → "iconColor" → "icon-color" for readability
     const combined = context + propertySemantic;
     // Insert hyphen before capital letters (except first)
-    return combined.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    return combined.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
   }
 
   return propertySemantic.toLowerCase();
@@ -624,7 +650,7 @@ function generateCodeHint(
   nodePath: string
 ): CodeHint {
   // Extract property name from path (e.g., "children[0].fills" → "fills")
-  const propName = nodePath.split('.').pop() || nodePath.split('[').pop() || '';
+  const propName = nodePath.split(".").pop() || nodePath.split("[").pop() || "";
 
   switch (valueType) {
     case "text":
@@ -775,17 +801,19 @@ function deepEqual(a: unknown, b: unknown): boolean {
  * This matches JavaScript syntax for easier code generation
  */
 export function pathToString(path: NodePath): string {
-  return path.map((part, index) => {
-    if (typeof part === 'number') {
-      return `[${part}]`;
-    }
-    // Add dot before property names that come after brackets
-    // Example: after "[0]" we need ".text"
-    if (index > 0 && typeof path[index - 1] === 'number') {
-      return `.${part}`;
-    }
-    return part;
-  }).join('');
+  return path
+    .map((part, index) => {
+      if (typeof part === "number") {
+        return `[${part}]`;
+      }
+      // Add dot before property names that come after brackets
+      // Example: after "[0]" we need ".text"
+      if (index > 0 && typeof path[index - 1] === "number") {
+        return `.${part}`;
+      }
+      return part;
+    })
+    .join("");
 }
 
 /**

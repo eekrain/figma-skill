@@ -1,8 +1,8 @@
 /**
  * Tests for component analyzer
  */
+import { describe, expect, it } from "@jest/globals";
 
-import { describe, it, expect } from "@jest/globals";
 import { analyzeComponents } from "@/compression/analyzer";
 import type { SimplifiedDesign } from "@/extractors/types";
 

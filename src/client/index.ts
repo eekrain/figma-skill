@@ -13,6 +13,7 @@ import type {
   GetImageUrlsOptions,
   GetNodesOptions,
   ImageUrlResult,
+  NodeId,
   SimplifiedDesign,
   SimplifiedNode,
   StreamChunk,
@@ -44,6 +45,17 @@ import {
 import { debug, info, setLogLevel, warn } from "@/utils/logger";
 import { validateNodeId } from "@/utils/node-id";
 import { RateLimiter } from "@/utils/rate-limiter";
+
+import {
+  type BatchPlan,
+  calculateParallelism,
+  createBatchPlan,
+  generateBatchId,
+  mergeGetFileOptions,
+  prepareNodeIds,
+} from "./get-file-batch";
+import type { MergedVariables, VariablesResult } from "./variable-types";
+import { mergeVariables } from "./variables";
 
 export class FigmaExtractor {
   private token: string;
@@ -186,7 +198,9 @@ export class FigmaExtractor {
    * Fetch style metadata for a file
    * Returns mapping of style IDs to their human-readable names
    */
-  private async getStyles(fileKey: string): Promise<Record<string, { name: string }>> {
+  private async getStyles(
+    fileKey: string
+  ): Promise<Record<string, { name: string }>> {
     try {
       const response = await this.rateLimiter.execute(() =>
         this.request<{
@@ -214,17 +228,126 @@ export class FigmaExtractor {
   }
 
   /**
-   * Fetch a complete Figma file or specific node
+   * Best-effort variable fetch - never fails getFile()
+   * Phase 5: Figma Variables Integration
+   */
+  private async tryFetchVariables(
+    fileKey: string
+  ): Promise<VariablesResult | null> {
+    try {
+      // Short timeout (don't slow down main fetch)
+      const response = await Promise.race([
+        this.rateLimiter.execute(() =>
+          this.request<{
+            variableCollections?: Array<{
+              id: string;
+              name: string;
+              modes: Array<{
+                modeId: string;
+                name: string;
+                propertyVersion: number;
+              }>;
+            }>;
+            variables?: Array<{
+              id: string;
+              name: string;
+              variableType: "COLOR" | "FLOAT" | "STRING" | "BOOLEAN";
+              resolvedType: string;
+              value:
+                | string
+                | number
+                | boolean
+                | { r: number; g: number; b: number; a: number };
+              variableModes?: Record<
+                string,
+                | string
+                | number
+                | boolean
+                | { r: number; g: number; b: number; a: number }
+              >;
+              variableCollectionId: string;
+              codeConnectAliases?: string[];
+              description?: string;
+            }>;
+          }>(`/files/${fileKey}/variables`, {
+            cacheKey: ["variables", fileKey],
+          })
+        ),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Variables fetch timeout")), 5000)
+        ),
+      ]);
+
+      // Check for 404 = file doesn't have variables (old file), that's ok
+      // The request method already handles status codes, but we can check if data is empty
+      if (!response.variableCollections && !response.variables) {
+        return null;
+      }
+
+      // Parse the response into VariablesResult format
+      const collections: import("./variable-types").VariableCollection[] = (
+        response.variableCollections || []
+      ).map((c) => ({
+        id: c.id,
+        name: c.name,
+        modes: c.modes.map((m) => ({
+          modeId: m.modeId,
+          name: m.name,
+          propertyVersion: m.propertyVersion,
+        })),
+      }));
+
+      const variables: import("./variable-types").Variable[] =
+        response.variables || [];
+
+      const modes: import("./variable-types").VariableMode[] = [];
+      for (const collection of collections) {
+        modes.push(...collection.modes);
+      }
+
+      return {
+        variables,
+        collections,
+        modes,
+      };
+    } catch (error) {
+      // Log warning but don't fail getFile()
+      if (
+        error instanceof Error &&
+        error.message === "Variables fetch timeout"
+      ) {
+        debug(`Variables fetch timed out (continuing without)`);
+      } else {
+        debug(`Variables fetch failed (continuing without):`, error);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Fetch a complete Figma file or specific node(s)
    *
    * When nodeId is provided, fetches only that specific node.
+   * When nodeIds array is provided, fetches multiple nodes with auto-batching.
    * When nodeId is omitted, fetches the entire file.
    */
   async getFile(
     fileKey: string,
     options?: GetFileOptions
-  ): Promise<SimplifiedDesign | string> {
-    info(`Fetching file: ${fileKey}`, { nodeId: options?.nodeId });
+  ): Promise<SimplifiedDesign | SimplifiedDesign[] | string> {
+    info(`Fetching file: ${fileKey}`, {
+      nodeId: options?.nodeId,
+      nodeIds: options?.nodeIds,
+    });
     console.log(`[DEBUG] Starting getFile for ${fileKey}...`);
+
+    // Route based on nodeIds presence (new API Redesign feature)
+    if (options?.nodeIds && options.nodeIds.length > 0) {
+      return await this.getFileBatched(
+        fileKey,
+        options as GetFileOptions & { nodeIds: NodeId[] }
+      );
+    }
 
     // Route based on nodeId presence
     if (options?.nodeId) {
@@ -253,17 +376,22 @@ export class FigmaExtractor {
     fileKey: string,
     options?: GetFileOptions
   ): Promise<SimplifiedDesign> {
-    const response = await this.rateLimiter.execute(() =>
-      this.request<{
-        name: string;
-        document: Node;
-        components?: Record<string, Component>;
-        componentSets?: Record<string, ComponentSet>;
-        styles?: Record<string, unknown>;  // CRITICAL: Include styles from main file response!
-      }>(`/files/${fileKey}`, {
-        cacheKey: ["file", fileKey],
-      })
-    );
+    // Phase 5: Fetch variables in parallel with file data
+    const [response, variables] = await Promise.all([
+      this.rateLimiter.execute(() =>
+        this.request<{
+          name: string;
+          document: Node;
+          components?: Record<string, Component>;
+          componentSets?: Record<string, ComponentSet>;
+          styles?: Record<string, unknown>; // CRITICAL: Include styles from main file response!
+        }>(`/files/${fileKey}`, {
+          cacheKey: ["file", fileKey],
+        })
+      ),
+      // Try to fetch variables (optional, best-effort)
+      this.tryFetchVariables(fileKey),
+    ]);
     console.log(`[DEBUG] API response received, starting extraction...`);
 
     // Get extractors from options or use default allExtractors
@@ -271,12 +399,24 @@ export class FigmaExtractor {
 
     // CRITICAL FIX: Use styles from main file response instead of separate endpoint
     // Framelink gets styles from the main file response, not /files/{key}/styles
-    const extraStyles = response.styles ? response.styles as Record<string, { name: string; styleType: string }> : {};
+    const extraStyles = response.styles
+      ? (response.styles as Record<string, { name: string; styleType: string }>)
+      : {};
 
     // DEBUG: Log what we got
-    console.log("[DEBUG] extraStyles from response:", Object.keys(extraStyles).length, "styles");
+    console.log(
+      "[DEBUG] extraStyles from response:",
+      Object.keys(extraStyles).length,
+      "styles"
+    );
     if (Object.keys(extraStyles).length > 0) {
-      console.log("[DEBUG] Sample extraStyles:", Object.entries(extraStyles).slice(0, 3).map(([k, v]) => `${k}: ${v.name}`).join(", "));
+      console.log(
+        "[DEBUG] Sample extraStyles:",
+        Object.entries(extraStyles)
+          .slice(0, 3)
+          .map(([k, v]) => `${k}: ${v.name}`)
+          .join(", ")
+      );
     }
 
     // Apply extraction pipeline - only pass visible children, not the DOCUMENT wrapper
@@ -319,6 +459,16 @@ export class FigmaExtractor {
       globalVars,
     };
 
+    // Phase 5: Merge variables if available
+    if (variables) {
+      design.variables = mergeVariables(design, variables);
+      console.log(
+        `[DEBUG] Variables merged: ${Object.keys(design.variables.byName).length} tokens`
+      );
+    } else {
+      design.variables = null;
+    }
+
     // Handle format option
     if (options?.format === "toon") {
       return toToon(design, {
@@ -341,8 +491,11 @@ export class FigmaExtractor {
     const { fetchPaginatedFile } =
       await import("@/streaming/paginated-fetcher");
 
-    // Fetch style metadata for name resolution (CRITICAL for semantic names)
-    const extraStyles = await this.getStyles(fileKey);
+    // Phase 5: Fetch style metadata and variables in parallel
+    const [extraStyles, variables] = await Promise.all([
+      this.getStyles(fileKey),
+      this.tryFetchVariables(fileKey),
+    ]);
 
     // Create progress emitter
     const progress = new ProgressEmitter();
@@ -358,7 +511,7 @@ export class FigmaExtractor {
         afterChildren: options?.afterChildren,
       },
       progress,
-      extraStyles  // Pass style metadata for semantic name resolution
+      extraStyles // Pass style metadata for semantic name resolution
     );
 
     // Collect all chunks
@@ -382,6 +535,16 @@ export class FigmaExtractor {
       componentSets: {},
       globalVars: finalResult?.globalVars || { styles: {} },
     };
+
+    // Phase 5: Merge variables if available
+    if (variables) {
+      design.variables = mergeVariables(design, variables);
+      console.log(
+        `[DEBUG] Variables merged (paginated): ${Object.keys(design.variables.byName).length} tokens`
+      );
+    } else {
+      design.variables = null;
+    }
 
     // Handle format option
     if (options?.format === "toon") {
@@ -417,9 +580,9 @@ export class FigmaExtractor {
 
     info(`Fetching nodes: ${normalizedNodeId}`);
 
-    // CRITICAL FIX: Fetch both nodes AND styles in parallel
-    // Node responses don't include styles - we need to fetch them from the file endpoint
-    const [nodesResponse, stylesData] = await Promise.all([
+    // CRITICAL FIX: Fetch nodes, styles, AND variables in parallel
+    // Phase 5: Also try to fetch variables (optional, best-effort)
+    const [nodesResponse, stylesData, variables] = await Promise.all([
       // Fetch the requested nodes
       this.rateLimiter.execute(() =>
         this.request<{
@@ -430,21 +593,38 @@ export class FigmaExtractor {
         })
       ),
       // Fetch file metadata including styles (lightweight request)
-      this.rateLimiter.execute(() =>
-        this.request<{
-          styles?: Record<string, unknown>;
-        }>(`/files/${fileKey}`, {
-          cacheKey: ["file", fileKey],
-        })
-      ).catch(() => ({ styles: undefined }))  // If styles fetch fails, continue without them
+      this.rateLimiter
+        .execute(() =>
+          this.request<{
+            styles?: Record<string, unknown>;
+          }>(`/files/${fileKey}`, {
+            cacheKey: ["file", fileKey],
+          })
+        )
+        .catch(() => ({ styles: undefined })), // If styles fetch fails, continue without them
+      // Phase 5: Try to fetch variables
+      this.tryFetchVariables(fileKey),
     ]);
 
     // CRITICAL: Use styles from the file response
-    const extraStyles = stylesData.styles ? stylesData.styles as Record<string, { name: string; styleType: string }> : {};
+    const extraStyles = stylesData.styles
+      ? (stylesData.styles as Record<
+          string,
+          { name: string; styleType: string }
+        >)
+      : {};
 
-    console.log(`[DEBUG] extraStyles from file response: ${Object.keys(extraStyles).length} styles`);
+    console.log(
+      `[DEBUG] extraStyles from file response: ${Object.keys(extraStyles).length} styles`
+    );
     if (Object.keys(extraStyles).length > 0) {
-      console.log(`[DEBUG] Sample extraStyles:`, Object.entries(extraStyles).slice(0, 3).map(([k, v]) => `${k}: ${(v as any).name}`).join(", "));
+      console.log(
+        `[DEBUG] Sample extraStyles:`,
+        Object.entries(extraStyles)
+          .slice(0, 3)
+          .map(([k, v]) => `${k}: ${(v as any).name}`)
+          .join(", ")
+      );
     }
 
     const extractors = options.extractors || allExtractors;
@@ -472,6 +652,16 @@ export class FigmaExtractor {
       globalVars,
     };
 
+    // Phase 5: Merge variables if available
+    if (variables) {
+      design.variables = mergeVariables(design, variables);
+      console.log(
+        `[DEBUG] Variables merged (node fetch): ${Object.keys(design.variables.byName).length} tokens`
+      );
+    } else {
+      design.variables = null;
+    }
+
     if (options?.format === "toon") {
       return toToon(design, {
         compress: options?.compress,
@@ -480,6 +670,188 @@ export class FigmaExtractor {
     }
 
     return design;
+  }
+
+  /**
+   * Fetch multiple nodes with auto-batching
+   *
+   * Splits nodeIds into batches and processes them in parallel.
+   * Returns array of SimplifiedDesign, one per node ID.
+   *
+   * @internal - Called by getFile() when nodeIds option is provided
+   */
+  private async getFileBatched(
+    fileKey: string,
+    options: GetFileOptions & { nodeIds: NodeId[] }
+  ): Promise<SimplifiedDesign[]> {
+    // Prepare node IDs (sanitize + deduplicate)
+    const preparedIds = prepareNodeIds(options.nodeIds);
+    if (preparedIds.length === 0) {
+      return [];
+    }
+
+    info(`Fetching ${preparedIds.length} nodes with auto-batching`);
+
+    // Create batch plan
+    const plan: BatchPlan = createBatchPlan(preparedIds);
+    info(`Created ${plan.batchCount} batches for ${plan.totalNodes} nodes`);
+
+    // Calculate optimal parallelism
+    const parallelism = calculateParallelism(plan.batchCount);
+    info(`Processing batches with parallelism: ${parallelism}`);
+
+    // Process batches in parallel
+    const results: SimplifiedDesign[] = [];
+    const executing: Promise<void>[] = [];
+    let batchIndex = 0;
+
+    const self = this;
+
+    function enqueueNext(): Promise<void> | undefined {
+      if (batchIndex >= plan.batches.length) {
+        return;
+      }
+
+      const batch = plan.batches[batchIndex++];
+      const batchId = generateBatchId(batch);
+
+      const promise = self
+        .processBatch(fileKey, batch, options)
+        .then((batchResults: SimplifiedDesign[]) => {
+          results.push(...batchResults);
+          info(`Completed batch ${batchIndex}/${plan.batches.length}`);
+        })
+        .catch((error: unknown) => {
+          warn(`Batch ${batchId} failed:`, error);
+          // Add error results for each node in batch
+          for (const nodeId of batch) {
+            results.push({
+              name: `error-${nodeId}`,
+              nodes: [],
+              components: {},
+              componentSets: {},
+              globalVars: { styles: {} },
+              _error: error instanceof Error ? error.message : String(error),
+            } as unknown as SimplifiedDesign);
+          }
+        })
+        .then(() => {
+          // Remove self from executing array
+          const idx = executing.indexOf(promise as Promise<void>);
+          if (idx > -1) {
+            executing.splice(idx, 1);
+          }
+          // Start next batch
+          return enqueueNext();
+        });
+
+      executing.push(promise);
+      return promise;
+    }
+
+    // Start initial batch of parallel requests
+    const initialBatch = Math.min(parallelism, plan.batches.length);
+    for (let i = 0; i < initialBatch; i++) {
+      enqueueNext();
+    }
+
+    // Wait for all batches to complete
+    await Promise.all(executing);
+
+    return results;
+  }
+
+  /**
+   * Process a single batch of node IDs
+   */
+  private async processBatch(
+    fileKey: string,
+    nodeIds: string[],
+    options: GetFileOptions
+  ): Promise<SimplifiedDesign[]> {
+    const batchId = generateBatchId(nodeIds);
+    info(`Processing batch: ${batchId}`);
+
+    // Fetch nodes, styles, and variables in parallel
+    const [nodesResponse, stylesData, variables] = await Promise.all([
+      this.rateLimiter.execute(() =>
+        this.request<{
+          name: string;
+          nodes: Record<string, Node>;
+        }>(`/files/${fileKey}/nodes?ids=${batchId}`, {
+          cacheKey: ["nodes", fileKey, batchId],
+        })
+      ),
+      // Fetch file metadata including styles (lightweight request)
+      this.rateLimiter
+        .execute(() =>
+          this.request<{
+            styles?: Record<string, unknown>;
+          }>(`/files/${fileKey}`, {
+            cacheKey: ["file", fileKey],
+          })
+        )
+        .catch(() => ({ styles: undefined })),
+      // Try to fetch variables
+      this.tryFetchVariables(fileKey),
+    ]);
+
+    // Use styles from the file response
+    const extraStyles = stylesData.styles
+      ? (stylesData.styles as Record<
+          string,
+          { name: string; styleType: string }
+        >)
+      : {};
+
+    const extractors = options.extractors || allExtractors;
+    const results: SimplifiedDesign[] = [];
+
+    // Process each node in the batch
+    for (const nodeId of nodeIds) {
+      const nodeResponse = nodesResponse.nodes[nodeId];
+      if (!nodeResponse) {
+        warn(`Node ${nodeId} not found in response`);
+        continue;
+      }
+
+      // Extract document from node response and filter for visibility
+      const visibleNode = (nodeResponse as unknown as { document: Node })
+        .document;
+      if (!visibleNode || visibleNode.visible === false) {
+        continue;
+      }
+
+      const { nodes, globalVars } = extractFromDesign(
+        [visibleNode],
+        extractors,
+        {
+          maxDepth: options.maxDepth,
+          nodeFilter: options.nodeFilter,
+          afterChildren: options.afterChildren,
+        },
+        { styles: {}, extraStyles }
+      );
+
+      const design: SimplifiedDesign = {
+        name: nodesResponse.name,
+        nodes,
+        components: {},
+        componentSets: {},
+        globalVars,
+      };
+
+      // Merge variables if available
+      if (variables) {
+        design.variables = mergeVariables(design, variables);
+      } else {
+        design.variables = null;
+      }
+
+      results.push(design);
+    }
+
+    return results;
   }
 
   /**
@@ -577,20 +949,27 @@ export class FigmaExtractor {
         })
       ),
       // Fetch file metadata including styles (lightweight request)
-      this.rateLimiter.execute(() =>
-        this.request<{
-          styles?: Record<string, unknown>;
-        }>(`/files/${fileKey}`, {
-          cacheKey: ["file", fileKey],
-        })
-      ).catch(() => ({ styles: undefined }))  // If styles fetch fails, continue without them
+      this.rateLimiter
+        .execute(() =>
+          this.request<{
+            styles?: Record<string, unknown>;
+          }>(`/files/${fileKey}`, {
+            cacheKey: ["file", fileKey],
+          })
+        )
+        .catch(() => ({ styles: undefined })), // If styles fetch fails, continue without them
     ]);
 
     // Get extractors from options or use default allExtractors
     const extractors = options.extractors || allExtractors;
 
     // CRITICAL FIX: Use styles from the file response
-    const extraStyles = stylesData.styles ? stylesData.styles as Record<string, { name: string; styleType: string }> : {};
+    const extraStyles = stylesData.styles
+      ? (stylesData.styles as Record<
+          string,
+          { name: string; styleType: string }
+        >)
+      : {};
 
     // Apply extraction pipeline to all fetched nodes
     // Extract document from each node response and filter for visibility
@@ -606,7 +985,7 @@ export class FigmaExtractor {
         nodeFilter: options.nodeFilter,
         afterChildren: options.afterChildren,
       },
-      { styles: {}, extraStyles }  // Pass through extraStyles for semantic names
+      { styles: {}, extraStyles } // Pass through extraStyles for semantic names
     );
 
     return {

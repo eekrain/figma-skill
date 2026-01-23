@@ -12,6 +12,7 @@ Before diving into specific issues, verify these basics:
 4. **System Libraries** - Are required system libraries available (NixOS users)?
 
 Run this quick check:
+
 ```bash
 # From output directory (.claude/figma-outputs/YYYY-MM-DD-name/)
 ls ../../.env          # Should show .env file
@@ -27,6 +28,7 @@ pwd                    # Should show you're in output directory
 ### NixOS/nix-ld Setup
 
 **Symptom:**
+
 ```
 Error: libstdc++.so.6: cannot open shared object file: No such file or directory
 ```
@@ -48,11 +50,13 @@ programs.nix-ld = {
 ```
 
 Then rebuild your system:
+
 ```bash
 sudo nixos-rebuild switch
 ```
 
 **Verification:**
+
 ```bash
 # After rebuild, verify the library is available
 ls $LD_LIBRARY_PATH | grep libstdc++
@@ -65,6 +69,7 @@ ls $LD_LIBRARY_PATH | grep libstdc++
 ### Rate Limiting (429 Errors)
 
 **Symptom:**
+
 ```
 Rate limited! Retry-After: 165479, delay: 165479000ms
 ```
@@ -77,10 +82,11 @@ Figma API rate limits requests. Occasionally returns extremely high (incorrect) 
 1. **Wait and Retry** - The actual rate limit is usually 1-2 minutes, regardless of what the header says.
 
 2. **Reduce Concurrency** - Lower concurrent requests:
+
    ```typescript
    const figma = new FigmaExtractor({
      token,
-     concurrent: 3,  // Reduced from default 10
+     concurrent: 3, // Reduced from default 10
    });
    ```
 
@@ -88,11 +94,12 @@ Figma API rate limits requests. Occasionally returns extremely high (incorrect) 
    ```typescript
    for (const { key, name } of files) {
      const design = await figma.getFile(key, { format: "toon" });
-     await new Promise(r => setTimeout(r, 2000)); // 2 second delay
+     await new Promise((r) => setTimeout(r, 2000)); // 2 second delay
    }
    ```
 
 **Common Rate Limit Triggers:**
+
 - Processing multiple files in quick succession
 - High concurrent download counts (use `parallel: 3` for `downloadImages`)
 - Frequent retries during development
@@ -104,6 +111,7 @@ Figma API rate limits requests. Occasionally returns extremely high (incorrect) 
 ### Working Directory Errors
 
 **Symptom:**
+
 ```
 Error: Cannot find module './dist/utils/dotenv'
 ```
@@ -112,6 +120,7 @@ Error: Cannot find module './dist/utils/dotenv'
 Running script from project root instead of output directory. The `../../.env` path is relative to the script location.
 
 **Solution:**
+
 ```bash
 # ❌ Wrong (runs from project root)
 cd /home/eekrain/CODE/figma-skill
@@ -123,6 +132,7 @@ bun run script.ts
 ```
 
 **Debugging:**
+
 ```bash
 # Check current directory
 pwd
@@ -137,6 +147,7 @@ ls ../../.env  # Should exist if in output directory
 The `.env` file should be at `../../.env` relative to your script.
 
 **Recommended Structure:**
+
 ```
 figma-skill/                           # Project root
 ├── .claude/
@@ -149,12 +160,14 @@ figma-skill/                           # Project root
 ```
 
 **Valid Token Format:**
+
 ```bash
 # .claude/.env
 FIGMA_TOKEN=figd_your_token_here
 ```
 
 **Token Sources:**
+
 - Get from: https://www.figma.com/developers/api#authentication
 - Format: `figd_` prefix followed by alphanumeric string
 - Must have appropriate file permissions
@@ -166,6 +179,7 @@ FIGMA_TOKEN=figd_your_token_here
 ### Type Errors: nodeId Not in GetFileOptions
 
 **Symptom:**
+
 ```
 Type error: Object literal may only specify known properties,
 and 'nodeId' does not exist in type 'GetFileOptions'
@@ -175,30 +189,35 @@ and 'nodeId' does not exist in type 'GetFileOptions'
 npm package v0.1.0 had outdated type definitions. **Fixed in v0.1.1+** - update to the latest version.
 
 **Solution:**
+
 ```bash
 bun update figma-skill
 ```
+
 Update to v0.1.1 or later for correct types.
 
 **Workarounds** (if unable to update):
 
 1. **Use Type Assertion**:
+
    ```typescript
    const design = await figma.getFile(fileKey, {
      nodeId: "6001-47121",
      format: "json",
-   } as any);  // Bypass type check temporarily
+   } as any); // Bypass type check temporarily
    ```
 
 2. **Cast Result** (if result type errors):
    ```typescript
    import { SimplifiedDesign } from "figma-skill";
-   const design = await figma.getFile(fileKey, options) as SimplifiedDesign;
+
+   const design = (await figma.getFile(fileKey, options)) as SimplifiedDesign;
    ```
 
 ### ESLint Errors from Parent Project
 
 **Symptom:**
+
 ```
 ESLint: 'Bun' is not defined. (no-undef)
 ESLint: Missing file extension for "./dist/utils/dotenv"
@@ -218,7 +237,7 @@ export default [
       "dist",
       "node_modules",
       "*.config.js",
-      ".claude/figma-outputs/**",  // ← Add this line
+      ".claude/figma-outputs/**", // ← Add this line
     ],
   },
   // ... rest of config
@@ -226,6 +245,7 @@ export default [
 ```
 
 **Alternative: Add .eslintrc to output directory**
+
 ```bash
 # In output directory (.claude/figma-outputs/YYYY-MM-DD-name/)
 echo '{"root": true}' > .eslintrc.json
@@ -267,6 +287,7 @@ A: No, figma-skill requires Bun for ESM support and runtime features like `Bun.w
 5. **Update Package:** Run `bun update figma-skill`
 
 **Getting Help:**
+
 - Review examples in `references/examples.md`
 - Check API docs in `references/api.md`
 - See advanced topics in `references/advanced.md`

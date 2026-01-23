@@ -6,15 +6,9 @@
  * - Instance counts per component
  * - Estimated size reduction
  */
+import type { SimplifiedDesign, SimplifiedNode } from "@/extractors/types";
 
-import type {
-  SimplifiedNode,
-  SimplifiedDesign,
-} from "@/extractors/types";
-import type {
-  ComponentInventory,
-  NodeWithComponentInfo,
-} from "./types";
+import type { ComponentInventory, NodeWithComponentInfo } from "./types";
 
 // Re-export for other modules
 export type { ComponentInventory };
@@ -217,9 +211,7 @@ function markNode(
 /**
  * Gets compression report as human-readable string
  */
-export function getCompressionReport(
-  inventory: ComponentInventory
-): string {
+export function getCompressionReport(inventory: ComponentInventory): string {
   const lines: string[] = [];
 
   lines.push("=== Component Compression Analysis ===");
@@ -236,9 +228,9 @@ export function getCompressionReport(
 
   if (totalComponents > 0) {
     lines.push("Components by usage:");
-    const sorted = Array.from(
-      inventory.componentCounts.entries()
-    ).sort((a, b) => b[1] - a[1]);
+    const sorted = Array.from(inventory.componentCounts.entries()).sort(
+      (a, b) => b[1] - a[1]
+    );
 
     for (const [componentId, count] of sorted) {
       const instances = inventory.instancesByComponent.get(componentId)!;

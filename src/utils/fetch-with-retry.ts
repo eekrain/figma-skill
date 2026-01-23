@@ -203,6 +203,11 @@ export async function fetchWithRetry(
     } catch (error) {
       lastError = error as Error;
 
+      // Don't retry API errors (404, 500, 503, etc.)
+      if (error instanceof FigmaApiError) {
+        throw error;
+      }
+
       // Don't retry authentication errors
       if (error instanceof AuthenticationError) {
         throw error;

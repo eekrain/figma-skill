@@ -136,7 +136,8 @@ function rebuildTree(nodes: Node[]): Node {
     id: "synthetic-root",
     name: "Document",
     type: "DOCUMENT",
-    children: roots,
+    scrollBehavior: "SCROLLS" as const,
+    children: roots as any,
   };
 }
 
@@ -191,7 +192,7 @@ export async function* fetchPaginatedFile(
   request: NodeFetcher,
   config: FileStreamConfig,
   progress: ProgressEmitter,
-  extraStyles?: Record<string, unknown>  // NEW: Style metadata for semantic names
+  extraStyles?: Record<string, unknown> // NEW: Style metadata for semantic names
 ): AsyncGenerator<StreamChunk, FileStreamResult, unknown> {
   const extractors = config.extractors || [];
   const batchSize = DEFAULT_BATCH_SIZE;
@@ -253,7 +254,12 @@ export async function* fetchPaginatedFile(
           nodeFilter: config.nodeFilter,
           afterChildren: config.afterChildren,
         },
-        { styles: {}, extraStyles }  // Pass through extraStyles for semantic names
+        {
+          styles: {},
+          extraStyles: extraStyles as
+            | Record<string, { name: string }>
+            | undefined,
+        }
       );
 
       yield {
@@ -278,7 +284,10 @@ export async function* fetchPaginatedFile(
       nodeFilter: config.nodeFilter,
       afterChildren: config.afterChildren,
     },
-    { styles: {}, extraStyles }  // Pass through extraStyles for semantic names
+    {
+      styles: {},
+      extraStyles: extraStyles as Record<string, { name: string }> | undefined,
+    }
   );
 
   progress.complete();

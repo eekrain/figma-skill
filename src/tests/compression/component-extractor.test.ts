@@ -1,8 +1,8 @@
 /**
  * Tests for component extractor
  */
+import { describe, expect, it } from "@jest/globals";
 
-import { describe, it, expect } from "@jest/globals";
 import { extractComponents } from "@/compression/component-extractor";
 import type { SimplifiedNode } from "@/extractors/types";
 
@@ -126,18 +126,14 @@ describe("Component Extractor", () => {
         name: "Card 1",
         type: "INSTANCE",
         componentId: "comp-card",
-        children: [
-          { id: "1-1", name: "Text", type: "TEXT", text: "A" },
-        ],
+        children: [{ id: "1-1", name: "Text", type: "TEXT", text: "A" }],
       },
       {
         id: "2",
         name: "Card 2",
         type: "INSTANCE",
         componentId: "comp-card",
-        children: [
-          { id: "2-1", name: "Text", type: "TEXT", text: "B" },
-        ],
+        children: [{ id: "2-1", name: "Text", type: "TEXT", text: "B" }],
       },
     ];
 
@@ -152,7 +148,9 @@ describe("Component Extractor", () => {
     // small test components may not achieve size reduction.
     // In real-world scenarios with more complex components, compression provides benefits.
     if (result.stats.componentCount > 0) {
-      expect(result.stats.compressedSize).toBeLessThan(result.stats.originalSize);
+      expect(result.stats.compressedSize).toBeLessThan(
+        result.stats.originalSize
+      );
       expect(result.stats.reductionPercent).toBeGreaterThan(0);
     } else {
       // Compression was skipped - validation determined it wouldn't reduce size

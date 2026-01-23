@@ -74,15 +74,23 @@ async function main() {
     const toonSize = toonString.length;
     const compressedSize = compressedToonString.length;
     const toonSavings = ((1 - toonSize / jsonSize) * 100).toFixed(1);
-    const compressedSavings = ((1 - compressedSize / jsonSize) * 100).toFixed(1);
+    const compressedSavings = ((1 - compressedSize / jsonSize) * 100).toFixed(
+      1
+    );
     const compressionBonus = ((1 - compressedSize / toonSize) * 100).toFixed(1);
 
     console.log("\n📊 FORMAT COMPARISON:\n");
     console.log(`JSON size:              ${jsonSize.toLocaleString()} bytes`);
-    console.log(`Toon size:              ${toonSize.toLocaleString()} bytes (${toonSavings}% vs JSON)`);
-    console.log(`Compressed Toon size:   ${compressedSize.toLocaleString()} bytes (${compressedSavings}% vs JSON)`);
+    console.log(
+      `Toon size:              ${toonSize.toLocaleString()} bytes (${toonSavings}% vs JSON)`
+    );
+    console.log(
+      `Compressed Toon size:   ${compressedSize.toLocaleString()} bytes (${compressedSavings}% vs JSON)`
+    );
     console.log(``);
-    console.log(`Compression bonus:      ${compressionBonus}% smaller than regular Toon`);
+    console.log(
+      `Compression bonus:      ${compressionBonus}% smaller than regular Toon`
+    );
 
     console.log("\n✅ Files saved successfully!");
     console.log(`   - ${jsonPath}`);
@@ -93,8 +101,9 @@ async function main() {
     console.log("\n🔄 Testing decompression...");
     const { fromToon } = await import("./dist/index.js");
     const decompressed = fromToon(compressedToonString);
-    console.log(`   Decompressed ${decompressed.nodes.length} nodes successfully!`);
-
+    console.log(
+      `   Decompressed ${decompressed.nodes.length} nodes successfully!`
+    );
   } catch (error) {
     console.error("Error:", error.message);
     if (error.message.includes("401") || error.message.includes("403")) {

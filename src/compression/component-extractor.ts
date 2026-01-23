@@ -7,21 +7,21 @@
  * 3. Creates component template from first instance
  * 4. Creates compressed instance references with overrides
  */
-
 import type { SimplifiedNode } from "@/extractors/types";
+
+import { applyOverrides, detectSlots } from "./slot-detector";
 import type {
+  CodeHint,
   ComponentDefinition,
+  ComponentHierarchy,
   CompressedInstance,
   CompressionOptions,
-  LayoutPosition,
-  SerializableCompressedDesign,
-  SerializableComponentDefinition,
   CompressionStats,
-  CodeHint,
+  LayoutPosition,
+  SerializableComponentDefinition,
+  SerializableCompressedDesign,
   SlotDefinition,
-  ComponentHierarchy,
 } from "./types";
-import { detectSlots, applyOverrides } from "./slot-detector";
 
 /**
  * Extract result containing compressed design and statistics
@@ -56,7 +56,7 @@ function validateCompressionBenefit(
   componentDefinitions: Map<string, ComponentDefinition>,
   compressedInstances: CompressedInstance[],
   remainingNodes: SimplifiedNode[],
-  minSavings: number = 0.10
+  minSavings: number = 0.1
 ): boolean {
   const originalSize = estimateSerializedSize(originalNodes);
 
@@ -68,9 +68,11 @@ function validateCompressionBenefit(
   const remainingSize = estimateSerializedSize(remainingNodes);
   const compressedSize = componentsSize + instancesSize + remainingSize;
 
-  const savings = 1 - (compressedSize / originalSize);
+  const savings = 1 - compressedSize / originalSize;
 
-  console.log(`[Compression Validation] Original: ${originalSize}, Compressed: ${compressedSize}, Savings: ${(savings * 100).toFixed(1)}%`);
+  console.log(
+    `[Compression Validation] Original: ${originalSize}, Compressed: ${compressedSize}, Savings: ${(savings * 100).toFixed(1)}%`
+  );
 
   return savings >= minSavings;
 }
@@ -87,7 +89,10 @@ function validateCompressionBenefit(
 export function extractComponents(
   name: string,
   nodes: SimplifiedNode[],
-  globalVars: { styles: Record<string, unknown>; extraStyles?: Record<string, { name: string }> },
+  globalVars: {
+    styles: Record<string, unknown>;
+    extraStyles?: Record<string, { name: string }>;
+  },
   options: CompressionOptions = {}
 ): ExtractResult {
   const minInstances = options.minInstances ?? 2;
@@ -96,7 +101,10 @@ export function extractComponents(
   const instancesByComponent = groupByComponentId(nodes);
 
   // Filter by minimum instances
-  const validComponents = filterByMinInstances(instancesByComponent, minInstances);
+  const validComponents = filterByMinInstances(
+    instancesByComponent,
+    minInstances
+  );
 
   // Extract component definitions and create compressed instances
   const componentDefinitions = new Map<string, ComponentDefinition>();
@@ -140,16 +148,22 @@ export function extractComponents(
     }
   }
 
-
   // NEW: Validate before committing to compression
-  if (!validateCompressionBenefit(nodes, componentDefinitions, compressedInstances, remainingNodes)) {
-    console.log('[Compression] Skipping - would not reduce size enough');
+  if (
+    !validateCompressionBenefit(
+      nodes,
+      componentDefinitions,
+      compressedInstances,
+      remainingNodes
+    )
+  ) {
+    console.log("[Compression] Skipping - would not reduce size enough");
     // Return uncompressed format
     const design = buildSerializableDesign(
       name,
-      new Map(),  // No component definitions
-      [],         // No compressed instances
-      nodes,      // Original nodes pass-through
+      new Map(), // No component definitions
+      [], // No compressed instances
+      nodes, // Original nodes pass-through
       globalVars
     );
 
@@ -167,12 +181,11 @@ export function extractComponents(
     compressedInstances,
     remainingNodes,
     globalVars,
-    componentHierarchy  // NEW: include hierarchy
+    componentHierarchy // NEW: include hierarchy
   );
 
   // Calculate stats
   const stats = calculateStats(nodes, design, componentDefinitions.size);
-
 
   return { design, stats };
 }
@@ -273,8 +286,10 @@ function createComponentTemplate(
     id: componentId,
     name: instance.name || "unnamed",
     type: instance.type === "COMPONENT" ? "COMPONENT" : "INSTANCE",
-    componentProperties: instance.componentProperties as Record<string, unknown> | undefined,
-    template,  // Minimal template instead of full children
+    componentProperties: instance.componentProperties as
+      | Record<string, unknown>
+      | undefined,
+    template, // Minimal template instead of full children
     slotIds: Array.from(slots.keys()),
     slots,
   };
@@ -297,7 +312,9 @@ function createComponentTemplateWithKnown(
     id: componentId,
     name: instance.name || "unnamed",
     type: instance.type === "COMPONENT" ? "COMPONENT" : "INSTANCE",
-    componentProperties: instance.componentProperties as Record<string, unknown> | undefined,
+    componentProperties: instance.componentProperties as
+      | Record<string, unknown>
+      | undefined,
     template,
     slotIds: Array.from(slots.keys()),
     slots,
@@ -328,7 +345,7 @@ function createMinimalTemplate(
 
   // Mark individual properties as slots using STRUCTURED REFERENCES (Phase 2)
   // Instead of "__SLOT:slot_id__" use { $slot: "slot_id" }
-  for (const prop of ['text', 'fills', 'strokes', 'opacity']) {
+  for (const prop of ["text", "fills", "strokes", "opacity"]) {
     const propPath = [...currentPath, prop].join(".");
     const propSlot = findSlotAtPath(propPath, slots);
     if (propSlot && (instance as any)[prop] !== undefined) {
@@ -348,20 +365,24 @@ function createMinimalTemplate(
       template.layout = { $slot: layoutSlot.slotId };
     } else {
       // Keep minimal layout info (dimensions only, no position)
-      if (instance.layout && typeof instance.layout === 'object') {
+      if (instance.layout && typeof instance.layout === "object") {
         const layout = instance.layout as unknown as Record<string, unknown>;
         const dims = layout.dimensions as Record<string, unknown> | undefined;
         const layoutObj: Record<string, unknown> = {
-          dimensions: dims ? {
-            width: dims.width as number | undefined,
-            height: dims.height as number | undefined,
-            aspectRatio: dims.aspectRatio as number | undefined,
-          } : undefined,
+          dimensions: dims
+            ? {
+                width: dims.width as number | undefined,
+                height: dims.height as number | undefined,
+                aspectRatio: dims.aspectRatio as number | undefined,
+              }
+            : undefined,
           mode: layout.mode as string | undefined,
         };
         // Phase 5: Add inline layout summary as readable hint
         // (Note: Using a regular field since YAML comments aren't easily supported)
-        const summary = generateLayoutSummary(instance.layout as unknown as Record<string, unknown>);
+        const summary = generateLayoutSummary(
+          instance.layout as unknown as Record<string, unknown>
+        );
         if (summary) {
           (template as any).layoutHint = summary;
         }
@@ -391,12 +412,11 @@ function createMinimalTemplate(
   // No compact object notation - always full object form
   if (instance.children && instance.children.length > 0) {
     template.children = instance.children.map((child, index) =>
-      createMinimalTemplate(
-        child,
-        slots,
-        knownComponents,
-        [...currentPath, "children", String(index)]
-      )
+      createMinimalTemplate(child, slots, knownComponents, [
+        ...currentPath,
+        "children",
+        String(index),
+      ])
     );
   }
 
@@ -412,9 +432,13 @@ function isSlotPosition(
   slots: Map<string, import("./types").SlotDefinition>
 ): boolean {
   for (const [slotId, slot] of slots) {
-    if (slot.nodePath === path || path.startsWith(slot.nodePath + ".") ||
-        path.startsWith(slot.nodePath + "[") || slot.nodePath.startsWith(path + ".") ||
-        slot.nodePath.startsWith(path + "[")) {
+    if (
+      slot.nodePath === path ||
+      path.startsWith(slot.nodePath + ".") ||
+      path.startsWith(slot.nodePath + "[") ||
+      slot.nodePath.startsWith(path + ".") ||
+      slot.nodePath.startsWith(path + "[")
+    ) {
       return true;
     }
   }
@@ -431,7 +455,7 @@ function generateCodeHint(
   nodePath: string
 ): CodeHint {
   // Extract property name from path (e.g., "children[0].fills" → "fills")
-  const propName = nodePath.split('.').pop() || nodePath.split('[').pop() || '';
+  const propName = nodePath.split(".").pop() || nodePath.split("[").pop() || "";
 
   switch (valueType) {
     case "text":
@@ -531,7 +555,7 @@ function generateLayoutSummary(layout: Record<string, unknown>): string {
     parts.push(`gap:${layout.gap}`);
   }
 
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 /**
@@ -551,7 +575,9 @@ function createCompressedInstance(
 
   // Extract layout data
   if (instance.layout && typeof instance.layout === "object") {
-    compressed.layoutData = extractLayoutPosition(instance.layout as unknown as Record<string, unknown>);
+    compressed.layoutData = extractLayoutPosition(
+      instance.layout as unknown as Record<string, unknown>
+    );
   }
 
   // Extract overrides
@@ -668,8 +694,14 @@ function buildComponentHierarchy(
 
   // Scan for component references in templates
   for (const [compId, def] of componentDefinitions) {
-    const scanForComponents = (node: import("./types").MinimalTemplateNode): void => {
-      if (node.componentId && node.componentId !== compId && hierarchy[node.componentId]) {
+    const scanForComponents = (
+      node: import("./types").MinimalTemplateNode
+    ): void => {
+      if (
+        node.componentId &&
+        node.componentId !== compId &&
+        hierarchy[node.componentId]
+      ) {
         // This component contains another component
         if (!hierarchy[compId].children) {
           hierarchy[compId].children = [];
@@ -739,20 +771,23 @@ function buildSerializableDesign(
   componentDefinitions: Map<string, ComponentDefinition>,
   instances: CompressedInstance[],
   nodes: SimplifiedNode[],
-  globalVars: { styles: Record<string, unknown>; extraStyles?: Record<string, { name: string }> },
+  globalVars: {
+    styles: Record<string, unknown>;
+    extraStyles?: Record<string, { name: string }>;
+  },
   componentHierarchy?: Record<string, ComponentHierarchy>
 ): SerializableCompressedDesign {
   return {
     name,
-    components: mapToRecord(
-      componentDefinitions,
-      serializeComponentDefinition
-    ),
-    componentHierarchy,  // NEW: include component hierarchy
+    components: mapToRecord(componentDefinitions, serializeComponentDefinition),
+    componentHierarchy, // NEW: include component hierarchy
     instances,
     nodes,
     globalVars: {
-      styles: globalVars.styles as Record<string, import("../extractors/types").StyleTypes>,
+      styles: globalVars.styles as Record<
+        string,
+        import("../extractors/types").StyleTypes
+      >,
       extraStyles: globalVars.extraStyles,
     },
   };
@@ -769,7 +804,7 @@ function serializeComponentDefinition(
     name: def.name,
     type: def.type,
     componentProperties: def.componentProperties,
-    template: def.template,  // Use template instead of children
+    template: def.template, // Use template instead of children
     slotIds: def.slotIds,
     slots: mapToRecord(def.slots, (slot) => slot),
   };

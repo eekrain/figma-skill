@@ -4,8 +4,13 @@
  * Reduces file size by 70-75% through component deduplication while preserving
  * perfect-pixel design representation for LLM coding agents.
  */
-
-import type { SimplifiedNode, SimplifiedDesign, GlobalVars, SimplifiedFill, StyleTypes } from "@/extractors/types";
+import type {
+  GlobalVars,
+  SimplifiedDesign,
+  SimplifiedFill,
+  SimplifiedNode,
+  StyleTypes,
+} from "@/extractors/types";
 import type { SimplifiedStrokes } from "@/transformers/style";
 
 // =====================================================
@@ -51,7 +56,7 @@ export interface MinimalTemplateNode {
   id: string;
   name: string;
   type: string;
-  visible?: boolean | SlotReference;  // Can be slot reference
+  visible?: boolean | SlotReference; // Can be slot reference
   /** Slot placeholder instead of actual value - DEPRECATED, use structured refs */
   isSlot?: boolean;
   /** Slot ID if this is a slot position - DEPRECATED, use $slot */
@@ -67,10 +72,12 @@ export interface MinimalTemplateNode {
   /** Opacity - can be slot reference */
   opacity?: number | SlotReference;
   /** Layout - can be slot reference */
-  layout?: {
-    mode?: string;
-    dimensions?: { width?: number; height?: number; aspectRatio?: number };
-  } | SlotReference;
+  layout?:
+    | {
+        mode?: string;
+        dimensions?: { width?: number; height?: number; aspectRatio?: number };
+      }
+    | SlotReference;
   /** Minimal template children */
   children?: MinimalTemplateNode[];
 }
@@ -122,7 +129,13 @@ export interface SlotDefinition {
   /** Path to node within component (e.g., "children[0].fills" in bracket notation) */
   nodePath: string;
   /** Type of value that varies */
-  valueType: "text" | "fills" | "strokes" | "opacity" | "visibility" | "property";
+  valueType:
+    | "text"
+    | "fills"
+    | "strokes"
+    | "opacity"
+    | "visibility"
+    | "property";
   /** Default value from most common instance */
   defaultValue: unknown;
   /** All variations found across instances */

@@ -378,11 +378,12 @@ describe("streamNodes", () => {
         mockProgress
       );
 
-      for await (const _chunk of generator) {
+      // Manual iteration to capture return value
+      let result = await generator.next();
+      while (!result.done) {
         // consume chunks
+        result = await generator.next();
       }
-
-      const result = await generator.next();
 
       expect(result.done).toBe(true);
       expect(result.value).toBeDefined();

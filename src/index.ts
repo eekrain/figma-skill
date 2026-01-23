@@ -51,7 +51,12 @@ export {
 } from "@/extractors/index";
 
 // Toon format (unique advantage - keep!)
-export { toToon, toToonLines, fromToon, type ToonOptions } from "@/transformers/toon";
+export {
+  toToon,
+  toToonLines,
+  fromToon,
+  type ToonOptions,
+} from "@/transformers/toon";
 
 // Compression (for advanced users)
 export {
@@ -60,6 +65,66 @@ export {
   analyzeCompressionPotential,
   createCompressionReport,
 } from "@/compression/index";
+
+// Tokens (Phase 1: Design Token Extraction)
+export { extractTokens } from "@/tokens";
+export type {
+  DesignToken,
+  ColorToken,
+  TypographyToken,
+  TypographyValue,
+  SpacingToken,
+  EffectToken,
+  EffectValue,
+  BorderRadiusToken,
+  DesignTokens,
+  TokenMetadata,
+  TokenStats,
+  TokenExtractionOptions,
+} from "@/tokens";
+
+// Analysis (Phase 2: Component Intelligence)
+export { analyzeComponents } from "@/analysis";
+export type {
+  ComponentAnalysis,
+  DesignSystemAnalysis,
+  ComponentVariant,
+  InferredProp,
+  AtomicLevel,
+  ComponentReadiness,
+  CodeHints,
+  ComponentRelationship,
+  ComponentUsage,
+  ComponentStyling,
+  DesignPattern,
+  AtomicHierarchy,
+  ImplementationReadiness,
+  AnalysisSummary,
+  ComponentAnalysisOptions,
+} from "@/analysis";
+
+// Export (Phase 3: Multi-Format Token Export)
+export { toTailwindV3, toStyleDictionary, syncToTailwindV3 } from "@/export";
+export type {
+  TailwindV3Config,
+  TailwindV3Options,
+  StyleDictionary,
+  ExportOptions,
+  TokenToClassMap,
+  SyncStats,
+  SyncToTailwindV3Options,
+} from "@/export";
+
+// Docs (Phase 4: Design System Documentation)
+export { generateDesignSystemDoc } from "@/docs";
+export type {
+  DocFile,
+  DocGenerationOptions,
+  DocTemplates,
+  OverviewData,
+  ColorTokenData,
+  ComponentDocData,
+} from "@/docs";
 
 // Logger (minimal - users control their own logging)
 export { setLogLevel, getLogLevel } from "@/utils/logger";

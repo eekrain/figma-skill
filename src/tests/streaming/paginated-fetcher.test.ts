@@ -15,11 +15,13 @@ import { FigmaApiError, PayloadTooLargeError } from "@/utils/fetch-with-retry";
 
 describe("paginated-fetcher", () => {
   let mockProgress: ProgressEmitter;
-  let mockRequest: jest.Mock;
+  let mockRequest: jest.MockedFunction<(endpoint: string) => Promise<unknown>>;
 
   beforeEach(() => {
     mockProgress = new ProgressEmitter();
-    mockRequest = jest.fn() as unknown as jest.Mock;
+    mockRequest = jest.fn() as jest.MockedFunction<
+      (endpoint: string) => Promise<unknown>
+    >;
   });
 
   const createMockDocumentNode = (children: Node[]): Node => {
@@ -119,15 +121,17 @@ describe("paginated-fetcher", () => {
         mockProgress
       );
 
+      // Start consuming the generator (async generators are lazy)
+      const iterator = generator[Symbol.asyncIterator]();
+      await iterator.next();
+
       // Expect the first call to be for the document node
       expect(mockRequest).toHaveBeenCalledWith(
         "/files/testFile/nodes?ids=testFile-0:0"
       );
 
-      // Consume the generator
-      for await (const _chunk of generator) {
-        // consume
-      }
+      // Consume remaining
+      await iterator.next();
     });
 
     it("should fetch children in batches", async () => {
@@ -303,12 +307,12 @@ describe("paginated-fetcher", () => {
         mockProgress
       );
 
-      const chunks: StreamChunk[] = [];
-      for await (const chunk of generator) {
-        chunks.push(chunk);
+      // Manual iteration to capture return value
+      let result = await generator.next();
+      while (!result.done) {
+        result = await generator.next();
       }
 
-      const result = await generator.next();
       expect(result.done).toBe(true);
 
       const finalResult = result.value as FileStreamResult;
@@ -378,13 +382,11 @@ describe("paginated-fetcher", () => {
         mockProgress
       );
 
-      const chunks: StreamChunk[] = [];
-      for await (const chunk of generator) {
-        chunks.push(chunk);
+      // Manual iteration to capture return value
+      let result = await generator.next();
+      while (!result.done) {
+        result = await generator.next();
       }
-
-      const result = await generator.next();
-      expect(result.done).toBe(true);
 
       // Verify tree structure is maintained
       const finalResult = result.value as FileStreamResult;

@@ -1,9 +1,13 @@
 /**
  * Tests for slot detector
  */
+import { describe, expect, it } from "@jest/globals";
 
-import { describe, it, expect } from "@jest/globals";
-import { detectSlots, pathToString, stringToPath } from "@/compression/slot-detector";
+import {
+  detectSlots,
+  pathToString,
+  stringToPath,
+} from "@/compression/slot-detector";
 import type { SimplifiedNode } from "@/extractors/types";
 
 describe("Slot Detector", () => {
